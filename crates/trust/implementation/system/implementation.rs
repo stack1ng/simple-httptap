@@ -1,4 +1,4 @@
-//! The trust store: the login keychain's trust settings on macOS, and os-truststore elsewhere.
+//! The trust store: the login keychain's trust settings on macOS, the machine's store elsewhere.
 //!
 //! On macOS the system's own prompt asks once, by password or Touch ID, and waits as long as needed.
 
@@ -54,14 +54,22 @@ fn add_to_store(certificate: &str) -> std::io::Result<Outcome> {
     Ok(Outcome::Trusted)
 }
 
-/// Adds the certificate to the store os-truststore uses: the user's on Windows, the system's on Linux.
+/// Adds the certificate to the machine's store through os-truststore, or on Windows without elevation to the user's.
+///
+/// The machine's store asks nothing; Windows asks the person to confirm a root added to the user's.
 #[cfg(not(target_os = "macos"))]
 fn add_to_store(certificate: &str) -> std::io::Result<Outcome> {
     use os_truststore::{Cert, Install, Report, Scope, TrustError};
 
     let parsed = Cert::from_pem(certificate.as_bytes())
         .map_err(|fault| std::io::Error::new(ErrorKind::InvalidInput, fault.to_string()))?;
-    match Install::new(&parsed).scope(Scope::CurrentUser).run() {
+    let installed = match Install::new(&parsed).scope(Scope::System).run() {
+        Err(TrustError::NeedsElevation { .. }) if cfg!(windows) => {
+            Install::new(&parsed).scope(Scope::CurrentUser).run()
+        }
+        installed => installed,
+    };
+    match installed {
         Ok(Report::Installed) => Ok(Outcome::Trusted),
         Ok(Report::AlreadyInstalled) => Ok(Outcome::AlreadyTrusted),
         Ok(report) => Err(std::io::Error::other(format!("the certificate is not trusted: {report:?}"))),
