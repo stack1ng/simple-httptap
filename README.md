@@ -31,7 +31,9 @@ httptap trust
 
 It asks once and then checks that TLS clients really trust the root. On macOS that is the system's own
 prompt (password or Touch ID) for your login keychain's trust settings, which Chrome and Safari use; on
-Linux it runs `sudo` itself for the system store; on Windows it is the dialog for your user's root store.
+Linux it runs `sudo` itself for the system store; on Windows, from an elevated or administrator SSH
+session, it goes into the machine's root store with no dialog, and otherwise into your user's, where
+Windows asks you to confirm it.
 Run it again any time: if the root is already trusted, it says so and asks nothing. The certificate lives in the OS's data folder for
 the app (`~/Library/Application Support/simple-httptap` on macOS, `~/.local/share/simple-httptap` on
 Linux, `%APPDATA%\simple-httptap\data` on Windows), and every run reuses it.
@@ -81,5 +83,8 @@ the proxy is logged too.
 - The TLS fingerprint the server sees is this proxy's, not your client's. Every intercepting proxy has
   this limitation.
 - Targets must have certificates your OS trusts.
+- On Windows, each run also serves an empty certificate revocation list on another loopback port, which
+  its host certificates point to, because Windows tools such as `curl.exe` refuse a certificate whose
+  revocation they cannot check.
 - A plain-HTTP keep-alive connection goes to the host of its first request.
 - The proxy notices that stdout has closed only when it next writes an event; stop it with a signal.

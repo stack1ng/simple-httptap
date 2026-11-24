@@ -20,6 +20,7 @@ rcgen = { version = "0.14.10", default-features = false, features = ["ring", "pe
 simple-httptap-authority = { path = "../.." }
 tempfile = "3.27.0"
 time = "0.3.55"
+url = "2.5.9"
 
 [dev-dependencies]
 rustls = { version = "0.23.46", default-features = false, features = ["ring", "std"] }
