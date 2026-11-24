@@ -1,6 +1,6 @@
-//! The `simple-httptap` program: a proxy on an ephemeral port that writes what it sees to standard output.
+//! The `httptap` program: a proxy on an ephemeral port that writes what it sees to standard output.
 //!
-//! `simple-httptap trust` adds the root to the user's trust store; both keep it in the system's data folder.
+//! `httptap trust` adds the root to the user's trust store; both keep it in the system's data folder.
 
 use std::io::ErrorKind;
 use std::path::PathBuf;
@@ -18,12 +18,14 @@ use simple_httptap_trust_system::SystemTrust;
 use tokio_rustls::rustls::client::danger::ServerCertVerifier;
 use tokio_rustls::rustls::pki_types::{CertificateDer, ServerName, UnixTime};
 
-/// The program's name, which also names its data folder.
-const PROGRAM: &str = "simple-httptap";
+/// The command's name.
+const PROGRAM: &str = "httptap";
+/// The name of the data folder that keeps the root certificate, the project's name.
+const DATA_FOLDER: &str = "simple-httptap";
 /// The command that adds the root certificate to the user's trust store.
 const TRUST_COMMAND: &str = "trust";
 /// The variable with the upstream HTTP proxy, as `http://[user:password@]host:port`.
-const UPSTREAM_VARIABLE: &str = "SIMPLE_HTTPTAP_UPSTREAM_PROXY";
+const UPSTREAM_VARIABLE: &str = "HTTPTAP_UPSTREAM_PROXY";
 /// The host the startup check asks the system to trust a certificate for.
 const CHECKED_HOST: &str = "localhost";
 /// The only scheme an upstream proxy's URL may have.
@@ -93,7 +95,7 @@ fn trust() -> std::io::Result<()> {
 
 /// Returns the operating system's data folder for the program, where the authority is kept.
 fn data_folder() -> std::io::Result<PathBuf> {
-    directories::ProjectDirs::from("", "", PROGRAM)
+    directories::ProjectDirs::from("", "", DATA_FOLDER)
         .map(|folders| folders.data_dir().to_path_buf())
         .ok_or_else(|| std::io::Error::new(ErrorKind::NotFound, "no home folder to keep the root certificate in"))
 }

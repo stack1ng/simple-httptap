@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-proxy-tokio"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 publish = false
 description = "An ephemeral HTTPS-intercepting proxy that writes every request and response, byte-exact, to stdout as NDJSON."
@@ -11,7 +11,7 @@ license = "MIT"
 path = "implementation.rs"
 
 [[bin]]
-name = "simple-httptap"
+name = "httptap"
 path = "main.rs"
 
 [[test]]
@@ -28,16 +28,16 @@ futures-util = "0.3.34"
 http = "1.5.0"
 percent-encoding = "2.3.2"
 rustls-platform-verifier = "0.7.1"
-simple-httptap-authority = { version = "0.0.1", path = "../../../authority" }
-simple-httptap-authority-rcgen = { version = "0.0.1", path = "../../../authority/implementation/rcgen" }
-simple-httptap-decoder = { version = "0.0.1", path = "../../../decoder" }
-simple-httptap-decoder-http1 = { version = "0.0.1", path = "../../../decoder/implementation/http1" }
-simple-httptap-decoder-http2 = { version = "0.0.1", path = "../../../decoder/implementation/http2" }
-simple-httptap-proxy = { version = "0.0.1", path = "../.." }
-simple-httptap-sink = { version = "0.0.1", path = "../../../sink" }
-simple-httptap-sink-ndjson = { version = "0.0.1", path = "../../../sink/implementation/ndjson" }
-simple-httptap-trust = { version = "0.0.1", path = "../../../trust" }
-simple-httptap-trust-system = { version = "0.0.1", path = "../../../trust/implementation/system" }
+simple-httptap-authority = { version = "0.0.2", path = "../../../authority" }
+simple-httptap-authority-rcgen = { version = "0.0.2", path = "../../../authority/implementation/rcgen" }
+simple-httptap-decoder = { version = "0.0.2", path = "../../../decoder" }
+simple-httptap-decoder-http1 = { version = "0.0.2", path = "../../../decoder/implementation/http1" }
+simple-httptap-decoder-http2 = { version = "0.0.2", path = "../../../decoder/implementation/http2" }
+simple-httptap-proxy = { version = "0.0.2", path = "../.." }
+simple-httptap-sink = { version = "0.0.2", path = "../../../sink" }
+simple-httptap-sink-ndjson = { version = "0.0.2", path = "../../../sink/implementation/ndjson" }
+simple-httptap-trust = { version = "0.0.2", path = "../../../trust" }
+simple-httptap-trust-system = { version = "0.0.2", path = "../../../trust/implementation/system" }
 tokio = { version = "1.54.1", features = ["rt-multi-thread", "net", "io-util", "sync", "macros"] }
 tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring", "logging", "tls12"] }
 tokio-util = { version = "0.7.20", features = ["io"] }

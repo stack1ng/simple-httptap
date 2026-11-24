@@ -26,7 +26,7 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/stack1ng/simple-ht
 Then trust its root certificate once:
 
 ```sh
-simple-httptap trust
+httptap trust
 ```
 
 On macOS this asks for your password to change your login keychain's trust settings. On Linux it needs
@@ -34,10 +34,12 @@ root; it prints the exact `sudo` command if it does. The certificate lives in th
 the app (`~/Library/Application Support/simple-httptap` on macOS, `~/.local/share/simple-httptap` on
 Linux, `%APPDATA%\simple-httptap\data` on Windows), and every run reuses it.
 
+The command is `httptap`; the project, its Homebrew formula and its data folder are `simple-httptap`.
+
 ## Use
 
 ```sh
-simple-httptap > /tmp/tap.jsonl &
+httptap > /tmp/tap.jsonl &
 ADDR=$(head -1 /tmp/tap.jsonl | jq -r .address)   # {"event":"listening","address":"127.0.0.1:54321",...}
 HTTPS_PROXY=http://$ADDR HTTP_PROXY=http://$ADDR curl https://example.com
 ```
@@ -50,7 +52,7 @@ Programs that keep their own CA list need it pointed at the root certificate, fo
 `NODE_EXTRA_CA_CERTS` for Node (which also needs `NODE_USE_ENV_PROXY=1` for `fetch`) and
 `SSL_CERT_FILE` for Python.
 
-To go out through another HTTP proxy, set `SIMPLE_HTTPTAP_UPSTREAM_PROXY=http://[user:password@]host:port`.
+To go out through another HTTP proxy, set `HTTPTAP_UPSTREAM_PROXY=http://[user:password@]host:port`.
 Every connection, HTTPS and plain HTTP, goes through it with `CONNECT`.
 
 ## Output
