@@ -5,7 +5,6 @@ edition = "2024"
 publish = false
 description = "An ephemeral HTTPS-intercepting proxy that writes every request and response, byte-exact, to stdout as NDJSON."
 repository = "https://github.com/stack1ng/simple-httptap"
-homepage = "https://github.com/stack1ng/simple-httptap"
 license = "MIT"
 
 [lib]
