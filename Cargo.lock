@@ -1106,11 +1106,11 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "simple-httptap-authority"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "simple-httptap-authority-conformance"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-authority",
  "tempfile",
@@ -1118,7 +1118,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-authority-rcgen"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "pem 4.0.0",
  "rcgen",
@@ -1131,18 +1131,18 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decoder"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "simple-httptap-decoder-conformance"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-decoder",
 ]
 
 [[package]]
 name = "simple-httptap-decoder-http1"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "http",
  "simple-httptap-decoder",
@@ -1151,7 +1151,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decoder-http2"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "loona-hpack",
  "simple-httptap-decoder",
@@ -1160,7 +1160,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-authority",
  "simple-httptap-sink",
@@ -1168,7 +1168,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy-conformance"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-authority",
  "simple-httptap-proxy",
@@ -1177,7 +1177,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy-tokio"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "base64 0.23.1",
  "directories",
@@ -1205,14 +1205,14 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-sink"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-decoder",
 ]
 
 [[package]]
 name = "simple-httptap-sink-conformance"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-sink",
@@ -1220,7 +1220,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-sink-ndjson"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "base64 0.23.1",
  "serde",
@@ -1232,18 +1232,18 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-trust"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "simple-httptap-trust-conformance"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "simple-httptap-trust",
 ]
 
 [[package]]
 name = "simple-httptap-trust-system"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "os-truststore",
  "pem 4.0.0",

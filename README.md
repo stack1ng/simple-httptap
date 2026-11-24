@@ -29,8 +29,10 @@ Then trust its root certificate once:
 httptap trust
 ```
 
-On macOS this asks for your password to change your login keychain's trust settings. On Linux it needs
-root; it prints the exact `sudo` command if it does. The certificate lives in the OS's data folder for
+It asks once and then checks that TLS clients really trust the root. On macOS that is the system's own
+prompt (password or Touch ID) for your login keychain's trust settings, which Chrome and Safari use; on
+Linux it runs `sudo` itself for the system store; on Windows it is the dialog for your user's root store.
+Run it again any time: if the root is already trusted, it says so and asks nothing. The certificate lives in the OS's data folder for
 the app (`~/Library/Application Support/simple-httptap` on macOS, `~/.local/share/simple-httptap` on
 Linux, `%APPDATA%\simple-httptap\data` on Windows), and every run reuses it.
 

@@ -1,6 +1,6 @@
-//! The user's trust store: the login keychain through `security` on macOS, and os-truststore elsewhere.
+//! The trust store: the login keychain's trust settings on macOS, and os-truststore elsewhere.
 //!
-//! On macOS the person has as long as they need for the password prompt; Linux has only the system's store.
+//! On macOS the system's own prompt asks once, by password or Touch ID, and waits as long as needed.
 
 use std::io::ErrorKind;
 
@@ -25,18 +25,19 @@ const CERTIFICATE_TAG: &str = "CERTIFICATE";
 
 /// The macOS tool that manages keychains and trust settings.
 #[cfg(target_os = "macos")]
-const SECURITY: &str = "security";
-/// The `security` arguments that check whether a certificate file is trusted.
-#[cfg(target_os = "macos")]
-const VERIFY_CERTIFICATE: &[&str] = &["verify-cert", "-c"];
-/// The `security` arguments that add a certificate file to the login keychain as a trusted root.
+const SECURITY: &str = "/usr/bin/security";
+/// The `security` arguments that add a certificate file as a root the user trusts for every purpose.
+///
+/// The user's trust settings need no administrator, and macOS itself asks the person to confirm them.
 #[cfg(target_os = "macos")]
 const ADD_TRUSTED_ROOT: &[&str] = &["add-trusted-cert", "-r", "trustRoot"];
 /// The extension `security` reads a PEM certificate file by.
 #[cfg(target_os = "macos")]
 const PEM_SUFFIX: &str = ".pem";
 
-/// Adds the certificate to the login keychain as a trusted root, unless macOS trusts it already.
+/// Adds the certificate to the login keychain as a root the user trusts, after macOS's own prompt.
+///
+/// Adding it again is harmless, so it never reports `AlreadyTrusted`; the caller checks trust itself.
 #[cfg(target_os = "macos")]
 fn add_to_store(certificate: &str) -> std::io::Result<Outcome> {
     use std::io::Write;
@@ -44,19 +45,11 @@ fn add_to_store(certificate: &str) -> std::io::Result<Outcome> {
 
     let mut file = tempfile::Builder::new().suffix(PEM_SUFFIX).tempfile()?;
     file.write_all(certificate.as_bytes())?;
-    let path = file.path();
-    let is_trusted = || -> std::io::Result<bool> {
-        Ok(Command::new(SECURITY).args(VERIFY_CERTIFICATE).arg(path).output()?.status.success())
-    };
-    if is_trusted()? {
-        return Ok(Outcome::AlreadyTrusted);
-    }
-    let added = Command::new(SECURITY).args(ADD_TRUSTED_ROOT).arg(path).status()?;
-    if !added.success() {
-        return Err(std::io::Error::new(ErrorKind::PermissionDenied, format!("`{SECURITY}` failed with {added}")));
-    }
-    if !is_trusted()? {
-        return Err(std::io::Error::other("the certificate was added, but macOS does not trust it"));
+    file.as_file().sync_all()?;
+    let output = Command::new(SECURITY).args(ADD_TRUSTED_ROOT).arg(file.path()).output()?;
+    if !output.status.success() {
+        let detail = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+        return Err(std::io::Error::new(ErrorKind::PermissionDenied, detail));
     }
     Ok(Outcome::Trusted)
 }

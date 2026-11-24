@@ -28,6 +28,14 @@ const TRUST_COMMAND: &str = "trust";
 const UPSTREAM_VARIABLE: &str = "HTTPTAP_UPSTREAM_PROXY";
 /// The host the startup check asks the system to trust a certificate for.
 const CHECKED_HOST: &str = "localhost";
+/// The program that runs a command as root after asking for the person's password.
+const SUDO: &str = "sudo";
+/// The `sudo` option that keeps the variables the data folder is found by, so root opens the same authority.
+const SUDO_KEEPING_FOLDERS: &[&str] = &["--preserve-env=HOME,XDG_DATA_HOME"];
+/// The variable `sudo` sets in the command it runs, which stops a second round of asking.
+const SUDO_MARKER: &str = "SUDO_UID";
+/// The error when the store took the root but a host certificate still fails verification.
+const NOT_TRUSTED_AFTER_ADDING: &str = "the root was added, but the system still does not trust its certificates";
 /// The only scheme an upstream proxy's URL may have.
 const UPSTREAM_SCHEME: &str = "http";
 /// The separator between a host and its port, and between a user and a password.
@@ -76,17 +84,34 @@ fn serve() -> std::io::Result<()> {
     listener.serve()
 }
 
-/// Adds the root certificate to the user's trust store, making it first if there is none.
+/// Adds the root certificate to the system's trust store unless TLS clients trust it already, then checks they do.
 fn trust() -> std::io::Result<()> {
     let folder = data_folder()?;
     let signer = RcgenAuthority.open(&folder)?;
+    if is_root_trusted(&signer) {
+        eprintln!("the root certificate in {} is trusted already", folder.display());
+        return Ok(());
+    }
     match SystemTrust.add_trusted_root(&signer.root_certificate()) {
-        Ok(Outcome::Trusted) => eprintln!("trusted the root certificate in {}", folder.display()),
+        Ok(_) if !is_root_trusted(&signer) => {
+            return Err(std::io::Error::other(NOT_TRUSTED_AFTER_ADDING));
+        }
+        Ok(Outcome::Trusted) => eprintln!("trusted the root certificate in {}; restart browsers that were open", folder.display()),
         Ok(Outcome::AlreadyTrusted) => eprintln!("the root certificate in {} was trusted already", folder.display()),
-        Err(fault) if fault.kind() == ErrorKind::PermissionDenied && cfg!(target_os = "linux") => {
-            let program = std::env::current_exe()?;
-            eprintln!("{fault}\nrun: sudo --preserve-env=HOME,XDG_DATA_HOME {} {TRUST_COMMAND}", program.display());
-            return Err(fault);
+        Err(fault)
+            if fault.kind() == ErrorKind::PermissionDenied
+                && cfg!(target_os = "linux")
+                && std::env::var_os(SUDO_MARKER).is_none() =>
+        {
+            eprintln!("{PROGRAM}: the system trust store needs root, so this asks sudo");
+            let status = std::process::Command::new(SUDO)
+                .args(SUDO_KEEPING_FOLDERS)
+                .arg(std::env::current_exe()?)
+                .arg(TRUST_COMMAND)
+                .status()?;
+            if !status.success() {
+                return Err(std::io::Error::new(ErrorKind::PermissionDenied, format!("{SUDO} {TRUST_COMMAND} failed with {status}")));
+            }
         }
         Err(fault) => return Err(fault),
     }

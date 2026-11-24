@@ -17,3 +17,23 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --workspace --locked
+
+  trust-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked -p simple-httptap-proxy-tokio
+      - name: httptap trust, with sudo asked for by httptap itself
+        run: ./target/debug/httptap trust
+      - name: HTTPS through httptap with nothing but the system's trust
+        run: |
+          ./target/debug/httptap > tap.jsonl 2> tap.err &
+          for i in $(seq 50); do [ -s tap.jsonl ] && break; sleep 0.1; done
+          ADDR=$(head -1 tap.jsonl | jq -r .address)
+          curl -sS --fail -x "http://$ADDR" -o /dev/null https://example.com
+          sleep 1
+          cat tap.err
+          ! grep -q "not trusted" tap.err
+          grep -q '"event":"response"' tap.jsonl

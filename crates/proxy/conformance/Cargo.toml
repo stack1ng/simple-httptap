@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-proxy-conformance"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 publish = false
 
@@ -8,7 +8,7 @@ publish = false
 path = "conformance.rs"
 
 [dependencies]
-simple-httptap-authority = { version = "0.0.2", path = "../../authority" }
+simple-httptap-authority = { version = "0.0.3", path = "../../authority" }
 simple-httptap-proxy = { path = ".." }
 tempfile = "3.27.0"
 
