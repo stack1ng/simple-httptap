@@ -1,0 +1,28 @@
+[package]
+name = "simple-httptap-trust-system"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+pem = "4.0.0"
+simple-httptap-trust = { path = "../.." }
+
+[dev-dependencies]
+simple-httptap-trust-conformance = { path = "../../conformance" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tempfile = "3.27.0"
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+os-truststore = "0.0.2"

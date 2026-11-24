@@ -1,0 +1,27 @@
+[package]
+name = "simple-httptap-authority-rcgen"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+pem = "4.0.0"
+rcgen = { version = "0.14.10", default-features = false, features = ["ring", "pem", "x509-parser"] }
+simple-httptap-authority = { path = "../.." }
+tempfile = "3.27.0"
+time = "0.3.55"
+
+[dev-dependencies]
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std"] }
+simple-httptap-authority-conformance = { path = "../../conformance" }
+tempfile = "3.27.0"

@@ -1,0 +1,13 @@
+[package]
+name = "simple-httptap-sink"
+version = "0.0.1"
+edition = "2024"
+
+[lib]
+path = "interface.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+simple-httptap-decoder = { path = "../decoder" }

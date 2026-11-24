@@ -1,0 +1,16 @@
+[package]
+name = "simple-httptap-proxy-conformance"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[lib]
+path = "conformance.rs"
+
+[dependencies]
+simple-httptap-authority = { version = "0.0.1", path = "../../authority" }
+simple-httptap-proxy = { path = ".." }
+tempfile = "3.27.0"
+
+[lints]
+workspace = true

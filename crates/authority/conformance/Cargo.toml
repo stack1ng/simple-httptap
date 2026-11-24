@@ -1,0 +1,15 @@
+[package]
+name = "simple-httptap-authority-conformance"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[lib]
+path = "conformance.rs"
+
+[dependencies]
+simple-httptap-authority = { path = ".." }
+tempfile = "3.27.0"
+
+[lints]
+workspace = true

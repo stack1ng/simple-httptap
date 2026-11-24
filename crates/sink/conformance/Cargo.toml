@@ -1,0 +1,15 @@
+[package]
+name = "simple-httptap-sink-conformance"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[lib]
+path = "conformance.rs"
+
+[dependencies]
+simple-httptap-decoder = { version = "0.0.1", path = "../../decoder" }
+simple-httptap-sink = { path = ".." }
+
+[lints]
+workspace = true

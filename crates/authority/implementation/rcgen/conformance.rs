@@ -1,0 +1,1 @@
+simple_httptap_authority_conformance::tests!(simple_httptap_authority_rcgen::RcgenAuthority);

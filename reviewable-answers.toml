@@ -1,0 +1,533 @@
+# Answers a decision model gave about the names and doc comment summaries in this workspace.
+# `cargo reviewable check` asks only for what it has no answer for, and removes what the code no
+# longer has. Commit this file.
+# To dispute a wrong answer, add `disputed = "why, in one line"` to its line. The owner may write
+# `corrected = "<one of the choices>"` instead, which stands in for the model's answer.
+
+[function-summary]
+question = "The first sentence of the documentation of a Rust function is given in the state. What form is the verb it starts with?"
+subject = "summary"
+
+[function-summary.choices]
+third_person_verb = 'A verb in the third person singular present, such as "Returns" or "Creates".'
+imperative_verb = 'A verb in the imperative or base form, such as "Return" or "Create".'
+other = 'It does not start with a verb: a noun phrase, or a sentence with its own subject such as "This function returns ...".'
+
+[function-summary.answers]
+"Adds a PEM root certificate, asking the person if the system does." = { answer = "third_person_verb", confidence = 0.8522710400440816, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Adds the certificate to the login keychain as a trusted root, unless macOS trusts it already." = { answer = "third_person_verb", confidence = 0.9398862264702776, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Adds the certificate to the store os-truststore uses: the user's on Windows, the system's on Linux." = { answer = "third_person_verb", confidence = 0.9413576950897768, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Adds the root certificate to the user's trust store, making it first if there is none." = { answer = "third_person_verb", confidence = 0.9737430411380928, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Binds a loopback port the system picks; connections go out through the upstream if given." = { answer = "third_person_verb", confidence = 0.866822294845613, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Binds the proxy with its authority opened in a new temporary folder and its sink made anew." = { answer = "third_person_verb", confidence = 0.8201071770716871, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that DNS names and IP addresses each get a chain longer than one certificate, and a key." = { answer = "third_person_verb", confidence = 0.8999845842403625, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that a CONNECT tunnel carries bytes that are no TLS to the target and back unchanged." = { answer = "third_person_verb", confidence = 0.9365752156260502, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that a second finish returns nothing more than the first." = { answer = "third_person_verb", confidence = 0.7705471060276665, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that bytes that are no HTTP come out again whole, unparsed, from the side that sent them." = { answer = "third_person_verb", confidence = 0.8594131516362625, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that no bytes decode to nothing, before and after the connection closes." = { answer = "third_person_verb", confidence = 0.8582091443470485, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that one event of every kind, bytes that are no UTF-8 among them, is written without an error." = { answer = "third_person_verb", confidence = 0.8628993839381136, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that opening a folder a second time gives the root the first opening made." = { answer = "third_person_verb", confidence = 0.9015216164654728, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that text that is no certificate is refused before the store is touched." = { answer = "third_person_verb", confidence = 0.9353382241535212, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that the proxy listens on a loopback port the operating system picked." = { answer = "third_person_verb", confidence = 0.8865917366944523, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that the root certificate is a PEM certificate." = { answer = "third_person_verb", confidence = 0.8911497502798438, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Connects to the target's host and port, through the upstream proxy if there is one." = { answer = "third_person_verb", confidence = 0.90067911827312, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Copies bytes from the reader to the writer until either ends, sending each chunk for decoding as it arrives." = { answer = "third_person_verb", confidence = 0.9158100808466152, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Decodes a whole field block and gives its fields to the message they start or end." = { answer = "third_person_verb", confidence = 0.7717044949471077, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Forwards bytes both ways until both sides close, handing a copy of each to the decoder." = { answer = "third_person_verb", confidence = 0.8657828736910318, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Hands over everything left once the connection closed." = { answer = "third_person_verb", confidence = 0.9323068706645664, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Hands over the message the side ended on the stream, and forgets the stream once both sides ended." = { answer = "third_person_verb", confidence = 0.956100500487893, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Hands over the stream's unfinished messages, request first." = { answer = "third_person_verb", confidence = 0.8893393370397001, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Issues a certificate for a DNS name or an IP address." = { answer = "third_person_verb", confidence = 0.828360730093537, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Lets the client's held bytes go on in the state once a final response came, returning whether it did." = { answer = "third_person_verb", confidence = 0.8912607004101609, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Makes a new authority and writes it to the file, unless another process wrote one first; returns the file's text." = { answer = "third_person_verb", confidence = 0.9199837302692232, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Moves body bytes from the buffer into the message, returning the framing left, or none once the body ended." = { answer = "third_person_verb", confidence = 0.5471354849551033, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Moves up to the count of bytes from the front of the buffer to the body, returning how many it moved." = { answer = "third_person_verb", confidence = 0.7895033138493635, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Opens the CONNECT tunnel and serves it, ending TLS if the client starts it." = { answer = "third_person_verb", confidence = 0.8541266921626596, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Opens the authority in a new temporary folder, which it keeps." = { answer = "third_person_verb", confidence = 0.9336695503152748, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Opens the folder's authority, making it if none; racing processes share one." = { answer = "third_person_verb", confidence = 0.8581426826764126, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Parses a head into its start line and its fields, checking the start line has the form its side sends." = { answer = "third_person_verb", confidence = 0.9581798006368508, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Parses field lines, skipping the empty line that ends them and joining obsolete folded lines with a space." = { answer = "third_person_verb", confidence = 0.9626793228299484, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads a field block now, or waits for its CONTINUATION frames if the frame did not end it." = { answer = "third_person_verb", confidence = 0.8436246503778858, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads an HTTP/1 head off the stream, ending at its empty line, with whatever was read past it." = { answer = "third_person_verb", confidence = 0.8592482828615334, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads one frame of the side into the messages of its stream." = { answer = "third_person_verb", confidence = 0.972882717990277, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads one step of a chunked body." = { answer = "third_person_verb", confidence = 0.9384894729074454, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads one step of the side, returning none when it needs more bytes." = { answer = "third_person_verb", confidence = 0.9691910860251658, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads the client's proxy request and serves it as a tunnel or a plain HTTP exchange." = { answer = "third_person_verb", confidence = 0.9669919615927638, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads the next bytes one side sent and returns everything they completed." = { answer = "third_person_verb", confidence = 0.9602743692883664, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads the next message head of the side if it is all there." = { answer = "third_person_verb", confidence = 0.9554203294465904, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Reads what the side has buffered as far as it goes, and the client's too once a response lets it go on." = { answer = "third_person_verb", confidence = 0.8999833046922394, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Removes and returns the next whole line from the buffer, without its line ending." = { answer = "third_person_verb", confidence = 0.9760203165277292, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Removes the carriage return at the end of a line, if it has one." = { answer = "third_person_verb", confidence = 0.980907495486874, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Removes the spaces and tabs around a value." = { answer = "third_person_verb", confidence = 0.9744235997139424, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns a field block with the fields, each a literal never added to the table." = { answer = "third_person_verb", confidence = 0.9949274197214962, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns a frame's bytes." = { answer = "third_person_verb", confidence = 0.997005506606486, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns a payload without its padding, if the flags say it has some." = { answer = "third_person_verb", confidence = 0.9977682187200024, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns each field as a `[name, value]` pair, in order." = { answer = "third_person_verb", confidence = 0.9935473958717068, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns every message the bytes decode to, each side's bytes given in one piece and then byte by byte." = { answer = "third_person_verb", confidence = 0.9932731680602768, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns everything left once the connection closed." = { answer = "third_person_verb", confidence = 0.9922323813880248, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns one event of every kind, with bytes that are no UTF-8 among them." = { answer = "third_person_verb", confidence = 0.9920731454251474, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the DER inside one PEM block." = { answer = "third_person_verb", confidence = 0.9932732893212513, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the address clients connect to." = { answer = "third_person_verb", confidence = 0.9975436250614964, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the bytes as text if they are UTF-8, or else as base64." = { answer = "third_person_verb", confidence = 0.9916598700425598, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the configuration for connecting to targets, which trusts what the operating system trusts." = { answer = "third_person_verb", confidence = 0.9984484153555712, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the configuration for the client's side of TLS: a certificate for the host and the chosen protocol." = { answer = "third_person_verb", confidence = 0.9969138993523652, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the field names of a message in order." = { answer = "third_person_verb", confidence = 0.9965993177629792, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the fields written for a message of the connection." = { answer = "third_person_verb", confidence = 0.9944969309817416, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the host of a `host:port` target, an IPv6 address without its brackets." = { answer = "third_person_verb", confidence = 0.9964144992395876, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the host of a plain HTTP request's absolute target with its port, the scheme's default if none." = { answer = "third_person_verb", confidence = 0.9973078733090068, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the length of the empty lines at the start of the bytes, which a recipient skips before a start line." = { answer = "third_person_verb", confidence = 0.9974404222150102, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the length of the head at the start of the bytes, its empty last line included, if it is all there." = { answer = "third_person_verb", confidence = 0.9977241647030912, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the line for an event, stamped with the time now." = { answer = "third_person_verb", confidence = 0.9958641584759772, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the message the side is sending on the stream, if its fields have come." = { answer = "third_person_verb", confidence = 0.99409227238638, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the operating system's data folder for the program, where the authority is kept." = { answer = "third_person_verb", confidence = 0.9966301565641804, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the request line's method and target, or the status line's version and status." = { answer = "third_person_verb", confidence = 0.996621709535642, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the root certificate to trust, in PEM." = { answer = "third_person_verb", confidence = 0.9936762653929564, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the side a direction comes from." = { answer = "third_person_verb", confidence = 0.9962610396306596, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the state of the side that sent in the direction." = { answer = "third_person_verb", confidence = 0.9941936668098124, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the three-digit code after the version in a status line." = { answer = "third_person_verb", confidence = 0.995870975634615, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the upstream proxy the variable names, with any credentials as basic authorization, or none if unset." = { answer = "third_person_verb", confidence = 0.9807935048471144, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns the values of every field with the name, in any case, split at commas, in order." = { answer = "third_person_verb", confidence = 0.992720934694542, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns what is left once the connection closed, a message cut short with `complete` false." = { answer = "third_person_verb", confidence = 0.9969051964290409, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns whether a field has the name, in any case." = { answer = "third_person_verb", confidence = 0.9950958171780974, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns whether response fields have an informational status, which another response follows." = { answer = "third_person_verb", confidence = 0.9974842972806368, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns whether the byte is a space or a tab." = { answer = "third_person_verb", confidence = 0.9943673722788212, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Returns whether the operating system trusts a certificate the signer issues, checked as clients check it." = { answer = "third_person_verb", confidence = 0.997363711723782, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Says how the fields frame the body: chunked, by length, until the connection closes, or none given." = { answer = "third_person_verb", confidence = 0.9516223421719936, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Says how the request's body is framed and remembers its method for the response." = { answer = "third_person_verb", confidence = 0.9606901800856424, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Says how the response's body is framed, from its status and the method of the request it answers." = { answer = "third_person_verb", confidence = 0.970147499829121, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Serves on an ephemeral port until standard output closes, warning first if the root is not trusted." = { answer = "third_person_verb", confidence = 0.9817950492969076, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Serves one client connection and writes that it closed." = { answer = "third_person_verb", confidence = 0.9778985910833244, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Splits the file's text into the root certificate's PEM and the private key's PEM." = { answer = "third_person_verb", confidence = 0.9752992848811842, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Starts decoding a new connection." = { answer = "third_person_verb", confidence = 0.9098927179866064, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Stops reading the side as HTTP/2 and hands over what it has left as unparsed bytes." = { answer = "third_person_verb", confidence = 0.9806782692389052, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Takes the next whole frame out of the side's buffer, after the client's preface." = { answer = "third_person_verb", confidence = 0.9553653507198075, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Writes an event, or stops the proxy if the sink cannot." = { answer = "third_person_verb", confidence = 0.8918775052024989, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Writes each decoded result as its own event of the connection, in order." = { answer = "third_person_verb", confidence = 0.9327215478944076, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Writes one event in full; an error means nothing more can be written, and the proxy stops." = { answer = "third_person_verb", confidence = 0.9407026541108524, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Writes that it is listening, then serves clients until the sink fails." = { answer = "third_person_verb", confidence = 0.944001366090232, model = "perplexity/pplx-decider-v1.2-20261016" }
+
+[hook-form]
+question = "An event hook is named as given in the state. What form is the verb in the name?"
+subject = "name"
+
+[hook-form.choices]
+present_participle = "The verb is a present participle, such as starting or accessing."
+past_participle = "The verb is a past participle, such as ended or written."
+neither = "Neither: the name has no participle."
+
+[hook-form.answers]
+
+[summary-information]
+question = "A Rust item's kind, its name, the line that declares it, and the first paragraph of its documentation are given in the state. Does the paragraph tell a reader something that the name and the declaration do not already say? A link to outside documentation counts as telling something."
+subject = "kind\tname\tdeclaration\tparagraph"
+
+[summary-information.choices]
+adds_information = "The paragraph states a fact, a condition, a unit, an effect, a limit or a relation to something else that cannot be read off the name and the declaration, or it links to outside documentation."
+restates_name = "The paragraph only says again what the name and the declaration already say, in other words, and links to nothing."
+
+[summary-information.answers]
+'const	ADD_TRUSTED_ROOT	const ADD_TRUSTED_ROOT: &[&str] = &["add-trusted-cert", "-r", "trustRoot"];	The `security` arguments that add a certificate file to the login keychain as a trusted root.' = { answer = "adds_information", confidence = 0.7224565065951007, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	AUTHORITY_FILE	const AUTHORITY_FILE: &str = "authority.pem";	The file in the folder that holds the root certificate and then its private key, both in PEM.' = { answer = "adds_information", confidence = 0.9496430656432848, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	AUTHORITY_NAME	const AUTHORITY_NAME: &str = "simple-httptap";	The name the root certificate gives itself, which is what the trust store shows.' = { answer = "adds_information", confidence = 0.9567194702339534, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	BAD_REQUEST	const BAD_REQUEST: &[u8] = b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n";	The response to a request that is no proxy request.' = { answer = "adds_information", confidence = 0.6602123707864906, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCARRIAGE_RETURN\tconst CARRIAGE_RETURN: u8 = b'\\r';\tThe carriage return before a line feed, which a recipient may go without." = { answer = "adds_information", confidence = 0.3110674667224054, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	CERTIFICATE_TAG	const CERTIFICATE_TAG: &str = "CERTIFICATE";	The label of a PEM certificate block.' = { answer = "adds_information", confidence = 0.7590712430362603, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	CHECKED_HOST	const CHECKED_HOST: &str = "localhost";	The host the startup check asks the system to trust a certificate for.' = { answer = "adds_information", confidence = 0.9324291448413532, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	CHUNKED	const CHUNKED: &[u8] = b"chunked";	The transfer coding that frames a body in chunks.' = { answer = "adds_information", confidence = 0.5741125951653592, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCHUNK_SIZE_RADIX\tconst CHUNK_SIZE_RADIX: u32 = 16;\tThe base a chunk's size is written in." = { answer = "adds_information", confidence = 0.018157870338219473, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	COLON	const COLON: &str = ":";	The separator between a host and its port, and between a user and a password.' = { answer = "adds_information", confidence = 0.9397434775028576, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCOLON\tconst COLON: u8 = b':';\tThe colon between a field's name and its value." = { answer = "adds_information", confidence = 0.7063056517098025, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCOMMA\tconst COMMA: u8 = b',';\tThe comma between the members of a list field, such as several transfer codings." = { answer = "adds_information", confidence = 0.5595676848946076, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCONTINUATION\tconst CONTINUATION: u8 = 0x9;\tThe type of a CONTINUATION frame." = { answer = "adds_information", confidence = 0.7318981432831602, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tCUT_BLOCK\tconst CUT_BLOCK: &str = \"the connection closed inside a field block\";\tThe fault reported when the bytes end before a field block's END_HEADERS flag." = { answer = "adds_information", confidence = 0.7207153826009098, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tDATA\tconst DATA: u8 = 0x0;\tThe type of a DATA frame." = { answer = "adds_information", confidence = 0.8483652511170343, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	DETAIL	const DETAIL: &str = "a fault";	Why something failed, for a person.' = { answer = "adds_information", confidence = 0.7471006058075016, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tEND_HEADERS\tconst END_HEADERS: u8 = 0x4;\tThe flag that ends a field block." = { answer = "adds_information", confidence = 0.35559426096187985, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tEND_STREAM\tconst END_STREAM: u8 = 0x1;\tThe flag that ends a stream's side." = { answer = "restates_name", confidence = 0.27372417338575605, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	FIELD_NAME	const FIELD_NAME: &[u8] = b"Host";	The name of the field every HTTP/1.1 request carries, written in its usual case.' = { answer = "adds_information", confidence = 0.7716334219566883, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	FIELD_VALUE	const FIELD_VALUE: &[u8] = b"example.com";	The host that field names in the request.' = { answer = "adds_information", confidence = 0.5377162403377849, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tFRAME_HEADER_SIZE\tconst FRAME_HEADER_SIZE: usize = LENGTH_SIZE + 2 + size_of::<u32>();\tThe bytes of a frame's header: its length, type, flags and stream." = { answer = "adds_information", confidence = 0.7253395689949933, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tHEADERS\tconst HEADERS: u8 = 0x1;\tThe type of a HEADERS frame." = { answer = "adds_information", confidence = 0.5866989919582428, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	HEAD_END	const HEAD_END: &str = "\r\n";	The empty line that ends a head.' = { answer = "adds_information", confidence = 0.09293317764093878, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tHORIZONTAL_TAB\tconst HORIZONTAL_TAB: u8 = b'\\t';\tThe horizontal tab, which with the space is the whitespace around a field value." = { answer = "adds_information", confidence = 0.682338331253326, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	HOSTS	const HOSTS: &[&str] = &["example.com", "127.0.0.1", "::1"];	One DNS name, one IPv4 address and one IPv6 address.' = { answer = "adds_information", confidence = 0.49001014314102975, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tHOST_CERTIFICATE_DAYS\tconst HOST_CERTIFICATE_DAYS: i64 = 825;\tThe longest validity Apple's systems accept for a TLS server certificate, which every host certificate gets." = { answer = "adds_information", confidence = 0.969468225112602, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tHOST_PORT_SEPARATOR\tconst HOST_PORT_SEPARATOR: &str = \":\";\tThe colon before a target's port, which an IPv6 host has only inside brackets." = { answer = "adds_information", confidence = 0.8249742432516467, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	HTTP2_PROTOCOL	const HTTP2_PROTOCOL: &[u8] = b"h2";	The application protocol name of HTTP/2 in TLS.' = { answer = "adds_information", confidence = 0.4457967112364467, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tHTTP_SCHEME\tconst HTTP_SCHEME: &str = \"http\";\tThe scheme of a plain HTTP request's absolute target." = { answer = "restates_name", confidence = 0.03145943733417633, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tINFORMATIONAL_DIGIT\tconst INFORMATIONAL_DIGIT: u8 = b'1';\tThe first digit of an informational status." = { answer = "adds_information", confidence = 0.34925870917608703, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tLENGTH_SIZE\tconst LENGTH_SIZE: usize = 3;\tThe bytes of a frame's payload length." = { answer = "adds_information", confidence = 0.769517676303189, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	LINE_END	const LINE_END: &str = "\r\n";	The line ending of an HTTP/1 head.' = { answer = "adds_information", confidence = 0.8201011903463913, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tLINE_FEED\tconst LINE_FEED: u8 = b'\\n';\tThe line feed that ends every line of a message head." = { answer = "adds_information", confidence = 0.34687924659451164, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	NOT_A_CERTIFICATE	const NOT_A_CERTIFICATE: &str = "not a certificate";	Text that is no PEM certificate.' = { answer = "adds_information", confidence = 0.28099548445238964, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	NOT_HTTP	const NOT_HTTP: &[u8] = b"\0not http at all\r\n\r\nstill not\r\n\r\n";	Bytes that are no HTTP message in any version.' = { answer = "restates_name", confidence = 0.3791531622500963, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tNOT_UTF8\tconst NOT_UTF8: &str = \"not UTF-8\";\tThe faults an upstream proxy's URL can have." = { answer = "adds_information", confidence = 0.40992107805961187, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	NO_PREFACE	const NO_PREFACE: &str = "the client did not start with the HTTP/2 preface";	The fault for a client whose bytes start otherwise, so its side is then passed on unparsed.' = { answer = "adds_information", confidence = 0.5278803254109199, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tPADDED\tconst PADDED: u8 = 0x8;\tThe flag that says a payload is padded." = { answer = "adds_information", confidence = 0.5379551675037106, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tPEM_CERTIFICATE_START\tconst PEM_CERTIFICATE_START: &str = \"-----BEGIN CERTIFICATE-----\";\tThe armor line RFC 7468 puts before a certificate's base64." = { answer = "adds_information", confidence = 0.8371675873811573, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	PEM_SUFFIX	const PEM_SUFFIX: &str = ".pem";	The extension `security` reads a PEM certificate file by.' = { answer = "adds_information", confidence = 0.4731217739240252, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	PLAIN_BYTES	const PLAIN_BYTES: &[u8] = b"\0plain bytes through a tunnel";	Bytes that are no TLS, so the proxy passes them through without ending TLS.' = { answer = "adds_information", confidence = 0.8626460304251065, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	PREFACE	const PREFACE: &[u8] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";	What every HTTP/2 client sends before its first frame.' = { answer = "adds_information", confidence = 0.8150693183367004, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tPRIORITY\tconst PRIORITY: u8 = 0x20;\tThe flag that says a HEADERS frame carries priority." = { answer = "adds_information", confidence = 0.948591635715854, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tPRIORITY_SIZE\tconst PRIORITY_SIZE: usize = size_of::<u32>() + size_of::<u8>();\tThe bytes of the priority in a HEADERS frame: a stream dependency and a weight." = { answer = "adds_information", confidence = 0.9397185595149278, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	PRIVATE_KEY_START	const PRIVATE_KEY_START: &str = "-----BEGIN PRIVATE KEY-----";	The line that starts a PEM private key.' = { answer = "restates_name", confidence = 0.11554711474646062, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tPROGRAM\tconst PROGRAM: &str = \"simple-httptap\";\tThe program's name, which also names its data folder." = { answer = "adds_information", confidence = 0.8072272673797161, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	PROTOCOL	const PROTOCOL: &str = "h2";	A protocol TLS agreed on.' = { answer = "adds_information", confidence = 0.7661300788910799, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tPUSH_PROMISE\tconst PUSH_PROMISE: u8 = 0x5;\tThe type of a PUSH_PROMISE frame." = { answer = "adds_information", confidence = 0.3717834451895892, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tREQUEST_LINE_PARTS\tconst REQUEST_LINE_PARTS: usize = 3;\tThe parts of a request line: method, target and version." = { answer = "adds_information", confidence = 0.9265574733683544, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tRST_STREAM\tconst RST_STREAM: u8 = 0x3;\tThe type of a RST_STREAM frame." = { answer = "restates_name", confidence = 0.016055634626527482, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	SECURITY	const SECURITY: &str = "security";	The macOS tool that manages keychains and trust settings.' = { answer = "adds_information", confidence = 0.9839934813731116, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tSEMICOLON\tconst SEMICOLON: u8 = b';';\tThe semicolon before a chunk's extensions." = { answer = "adds_information", confidence = 0.8844688980824658, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	SINK_FAILED	const SINK_FAILED: &str = "the sink failed";	The error of a proxy whose sink failed without saying how.' = { answer = "adds_information", confidence = 0.6042992487418841, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tSPACE\tconst SPACE: u8 = b' ';\tThe space between the parts of a start line." = { answer = "adds_information", confidence = 0.7270485703056238, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	START_LINE	const START_LINE: &[u8] = b"GET / HTTP/1.1";	A start line of a request.' = { answer = "adds_information", confidence = 0.02113933305855076, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tSTATUS\tconst STATUS: &[u8] = b\":status\";\tThe name of the pseudo-header field with a response's status." = { answer = "adds_information", confidence = 0.3113224169399669, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tSTREAM_MASK\tconst STREAM_MASK: u32 = u32::MAX >> 1;\tThe bits of a stream identifier, all but the reserved first one." = { answer = "adds_information", confidence = 0.7463924864696452, model = "perplexity/pplx-decider-v1.2-20261016" }
+"const\tTARGET\tconst TARGET: &str = \"example.com:443\";\tA tunnel's target." = { answer = "adds_information", confidence = 0.4271439482291348, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tTRUST_COMMAND\tconst TRUST_COMMAND: &str = \"trust\";\tThe command that adds the root certificate to the user's trust store." = { answer = "adds_information", confidence = 0.9214960217096202, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	TUNNEL_OPENED	const TUNNEL_OPENED: &[u8] = b"HTTP/1.1 200 Connection Established\r\n\r\n";	The status a proxy answers CONNECT with once it reached the target.' = { answer = "adds_information", confidence = 0.7900094819340355, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	TUNNEL_OPENED	const TUNNEL_OPENED: &str = "HTTP/1.1 200";	The start of the status line of a tunnel the proxy opened.' = { answer = "adds_information", confidence = 0.222117168356204, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"const\tUPSTREAM_SCHEME\tconst UPSTREAM_SCHEME: &str = \"http\";\tThe only scheme an upstream proxy's URL may have." = { answer = "adds_information", confidence = 0.4349648897669023, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+'const	UPSTREAM_VARIABLE	const UPSTREAM_VARIABLE: &str = "SIMPLE_HTTPTAP_UPSTREAM_PROXY";	The variable with the upstream HTTP proxy, as `http://[user:password@]host:port`.' = { answer = "adds_information", confidence = 0.6814563974424455, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	VERIFY_CERTIFICATE	const VERIFY_CERTIFICATE: &[&str] = &["verify-cert", "-c"];	The `security` arguments that check whether a certificate file is trusted.' = { answer = "adds_information", confidence = 0.5251265372459224, model = "perplexity/pplx-decider-v1.2-20261016" }
+'const	VERSION_PREFIX	const VERSION_PREFIX: &[u8] = b"HTTP/";	The start of the version in a start line.' = { answer = "adds_information", confidence = 0.1683329345507436, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"crate\tsimple-httptap\t\tThe `simple-httptap` program: a proxy on an ephemeral port that writes what it sees to standard output." = { answer = "adds_information", confidence = 0.9266212379904696, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_authority\t\tA certificate authority that the proxy signs each host's certificate with." = { answer = "adds_information", confidence = 0.8098862175404371, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_authority_conformance\t\tThe tests every implementation of simple-httptap-authority runs, written against its traits alone." = { answer = "adds_information", confidence = 0.5983981764122062, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_authority_rcgen\t\tAn authority kept as one PEM file in its folder, signing each host's certificate with rcgen." = { answer = "adds_information", confidence = 0.9256838948431114, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_decoder\t\tA reader of a connection's bytes that turns them into the HTTP messages they carry, exactly as sent." = { answer = "adds_information", confidence = 0.6392960502746499, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_decoder_conformance\t\tThe tests every implementation of simple-httptap-decoder runs, written against its traits alone." = { answer = "adds_information", confidence = 0.6558378652593757, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_decoder_http1\t\tAn HTTP/1 decoder that frames each side's messages as RFC 9112 says and keeps every byte it is given." = { answer = "adds_information", confidence = 0.9512304280514984, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_decoder_http2\t\tAn HTTP/2 decoder that reads each side's frames as RFC 9113 says and its field blocks with HPACK." = { answer = "adds_information", confidence = 0.8897899254089212, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_proxy\t\tAn HTTP proxy on an ephemeral loopback port that forwards every byte unchanged and reports what it saw." = { answer = "adds_information", confidence = 0.9568149520324234, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_proxy_conformance\t\tThe tests every implementation of simple-httptap-proxy runs, written against its traits alone." = { answer = "adds_information", confidence = 0.6316090751724537, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_proxy_tokio\t\tA proxy on tokio that forwards every byte unchanged and hands a copy of each to a decoder." = { answer = "adds_information", confidence = 0.8804190804467631, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_sink\t\tA writer of everything the proxy sees, one event at a time, in the order it happened." = { answer = "adds_information", confidence = 0.8515223158313066, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_sink_conformance\t\tThe tests every implementation of simple-httptap-sink runs, written against its traits alone." = { answer = "adds_information", confidence = 0.5015153515660302, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_sink_ndjson\t\tA sink that writes each event to standard output as one line of JSON, its kind under `event`." = { answer = "adds_information", confidence = 0.8424082933603725, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_trust\t\tThe operating system's store of trusted roots, which a person adds the proxy's root to once." = { answer = "adds_information", confidence = 0.8461084055765979, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_trust_conformance\t\tThe tests every implementation of simple-httptap-trust runs, written against its traits alone." = { answer = "adds_information", confidence = 0.548028451766341, model = "perplexity/pplx-decider-v1.2-20261016" }
+"crate\tsimple_httptap_trust_system\t\tThe user's trust store: the login keychain through `security` on macOS, and os-truststore elsewhere." = { answer = "adds_information", confidence = 0.8763078019911319, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tBody\tenum Body {\tAn announcement, made by a message head, of what follows it." = { answer = "adds_information", confidence = 0.7963539190440887, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tBytes\tenum Bytes<'a> {\tA JSON string for UTF-8 bytes, or an object with their base64 for others." = { answer = "adds_information", confidence = 0.9521462273449292, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tChunk\tenum Chunk {\tThe step of reading a chunked body." = { answer = "adds_information", confidence = 0.7880409056897448, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tDecoded\tpub enum Decoded {\tA message, bytes that are no HTTP, or a fault ending HTTP on a side." = { answer = "adds_information", confidence = 0.8382594721792198, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tDirection\tpub enum Direction {\tThe side of a connection that sent some bytes." = { answer = "adds_information", confidence = 0.9389673762118254, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tEvent\tpub enum Event {\tA thing the proxy saw: it listens, a connection opens, bytes decode, a request is refused, or it closes." = { answer = "adds_information", confidence = 0.922559383667202, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tFraming\tenum Framing {\tThe rule that ends a body." = { answer = "adds_information", confidence = 0.6091268371552365, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tHappening\tenum Happening<'a> {\tThe fields of each kind of event, the kind's name written under `event`." = { answer = "adds_information", confidence = 0.6731938669077622, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tKind\tpub enum Kind {\tA request or a response." = { answer = "adds_information", confidence = 0.6501334720970822, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tOutcome\tpub enum Outcome {\tThe result of adding a root: newly trusted, or trusted before and left alone." = { answer = "adds_information", confidence = 0.9074188502911686, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tProgress\tenum Progress {\tThe outcome of one step of a chunked body." = { answer = "adds_information", confidence = 0.8996786510667867, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tSide\tenum Side {\tThe side that sent some bytes, written in lower case." = { answer = "adds_information", confidence = 0.8569940963209983, model = "perplexity/pplx-decider-v1.2-20261016" }
+"enum\tState\tenum State {\tThe reading state of one side." = { answer = "adds_information", confidence = 0.7334737352473697, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tblock\tblock: Option<Block>,\tA field block still waiting for its CONTINUATION frames." = { answer = "adds_information", confidence = 0.9586138938593024, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tfailed\tfailed: bool,\tWhether a fault stopped this side being read as HTTP/2." = { answer = "adds_information", confidence = 0.9150084426894736, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tfailure\tfailure: Mutex<Option<std::io::Error>>,\tThe sink's first error, which stops the proxy." = { answer = "adds_information", confidence = 0.9515316092400016, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\thpack\thpack: loona_hpack::Decoder<'static>,\tThe decoder of the field blocks this side sends, whose table the blocks keep up to date." = { answer = "adds_information", confidence = 0.8252332255389703, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tmethods\tmethods: VecDeque<Vec<u8>>,\tThe methods of the requests whose responses are still to come, oldest first." = { answer = "adds_information", confidence = 0.9669950116119594, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tprefaced\tprefaced: bool,\tWhether the client's preface has been read; the server sends none." = { answer = "adds_information", confidence = 0.8702646691643365, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tpromised\tpromised: Option<u32>,\tThe stream a PUSH_PROMISE reserves, or none for HEADERS." = { answer = "adds_information", confidence = 0.9021486518957512, model = "perplexity/pplx-decider-v1.2-20261016" }
+"field\tstreams\tstreams: BTreeMap<u32, Exchange>,\tThe messages being sent on each stream, by stream." = { answer = "adds_information", confidence = 0.45788184926696607, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tadd_to_store\tfn add_to_store(certificate: &str) -> std::io::Result<Outcome> {\tAdds the certificate to the login keychain as a trusted root, unless macOS trusts it already." = { answer = "adds_information", confidence = 0.9549156861529112, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tadd_to_store\tfn add_to_store(certificate: &str) -> std::io::Result<Outcome> {\tAdds the certificate to the store os-truststore uses: the user's on Windows, the system's on Linux." = { answer = "adds_information", confidence = 0.93763742003377, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tadd_trusted_root\tfn add_trusted_root(&self, certificate: &str) -> std::io::Result<Outcome>;\tAdds a PEM root certificate, asking the person if the system does." = { answer = "adds_information", confidence = 0.9311764494757312, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tadvance\tfn advance(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) {\tReads what the side has buffered as far as it goes, and the client's too once a response lets it go on." = { answer = "adds_information", confidence = 0.8244458451476631, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tbind\tfn bind(\tBinds a loopback port the system picks; connections go out through the upstream if given." = { answer = "adds_information", confidence = 0.9709628642475804, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tbind_proxy\tfn bind_proxy<T: Proxy>(proxy: &T) -> T::Listener {\tBinds the proxy with its authority opened in a new temporary folder and its sink made anew." = { answer = "adds_information", confidence = 0.8913138459169461, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tblank_lines_length\tfn blank_lines_length(bytes: &[u8]) -> usize {\tReturns the length of the empty lines at the start of the bytes, which a recipient skips before a start line." = { answer = "adds_information", confidence = 0.4763069312843802, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tblock\tfn block(fields: &[(&[u8], &[u8])]) -> Vec<u8> {\tReturns a field block with the fields, each a literal never added to the table." = { answer = "adds_information", confidence = 0.7996730983248526, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tclient_config\tfn client_config(provider: &Arc<CryptoProvider>) -> Result<ClientConfig, tokio_rustls::rustls::Error> {\tReturns the configuration for connecting to targets, which trusts what the operating system trusts." = { answer = "adds_information", confidence = 0.9273944501154738, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tconnect\tasync fn connect(&self, target: &str) -> Result<TcpStream, String> {\tConnects to the target's host and port, through the upstream proxy if there is one." = { answer = "adds_information", confidence = 0.9009825597728424, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tdata_folder\tfn data_folder() -> std::io::Result<PathBuf> {\tReturns the operating system's data folder for the program, where the authority is kept." = { answer = "adds_information", confidence = 0.5666741011092229, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tdecode\tfn decode(&mut self, direction: Direction, bytes: &[u8]) -> Vec<Decoded> {\tReads the next bytes one side sent and returns everything they completed." = { answer = "adds_information", confidence = 0.20383161345066217, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tdecode\tfn decode(&mut self, direction: Direction, bytes: &[u8]) -> Vec<Decoded>;\tReads the next bytes one side sent and returns everything they completed." = { answer = "adds_information", confidence = 0.2290677024086765, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tdecode_both_ways\tfn decode_both_ways(client: &[u8], server: &[u8]) -> Vec<Vec<Decoded>> {\tReturns every message the bytes decode to, each side's bytes given in one piece and then byte by byte." = { answer = "adds_information", confidence = 0.303123756929488, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tdecodes_nothing_from_no_bytes\tpub fn decodes_nothing_from_no_bytes<T: Decoder>(decoder: T) {\tChecks that no bytes decode to nothing, before and after the connection closes." = { answer = "adds_information", confidence = 0.6975646471647423, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\temit\tfn emit(&self, event: Event) {\tWrites an event, or stops the proxy if the sink cannot." = { answer = "adds_information", confidence = 0.8747251890489154, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\temit_decoded\tfn emit_decoded(&self, connection: u64, decoded: Vec<Decoded>) {\tWrites each decoded result as its own event of the connection, in order." = { answer = "adds_information", confidence = 0.5666999977838683, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tend_message\tfn end_message(&mut self, direction: Direction, stream: u32, decoded: &mut Vec<Decoded>) {\tHands over the message the side ended on the stream, and forgets the stream once both sides ended." = { answer = "adds_information", confidence = 0.8112765051091013, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tevery_kind_of_event\tfn every_kind_of_event() -> Vec<Event> {\tReturns one event of every kind, with bytes that are no UTF-8 among them." = { answer = "adds_information", confidence = 0.8492943419770795, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfail\tfn fail(&mut self, direction: Direction, detail: String, decoded: &mut Vec<Decoded>) {\tStops reading the side as HTTP/2 and hands over what it has left as unparsed bytes." = { answer = "adds_information", confidence = 0.956715754904928, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfind_field\tfn find_field(fields: &[Field], name: &str) -> bool {\tReturns whether a field has the name, in any case." = { answer = "adds_information", confidence = 0.6195533616866247, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfind_list_values\tfn find_list_values<'a>(fields: &'a [Field], name: &'a str) -> impl Iterator<Item = &'a [u8]> {\tReturns the values of every field with the name, in any case, split at commas, in order." = { answer = "adds_information", confidence = 0.9438408979427956, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfinish\tfn finish(&mut self) -> Vec<Decoded> {\tReturns everything left once the connection closed." = { answer = "adds_information", confidence = 0.83326434096921, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfinish\tfn finish(&mut self) -> Vec<Decoded>;\tReturns what is left once the connection closed, a message cut short with `complete` false." = { answer = "adds_information", confidence = 0.9412177604916864, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfinish\tfn finish(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) {\tHands over everything left once the connection closed." = { answer = "adds_information", confidence = 0.8649266184426807, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfinish\tfn finish(self, decoded: &mut Vec<Decoded>) {\tHands over the stream's unfinished messages, request first." = { answer = "adds_information", confidence = 0.8957277168363538, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfinishes_once\tpub fn finishes_once<T: Decoder>(decoder: T) {\tChecks that a second finish returns nothing more than the first." = { answer = "adds_information", confidence = 0.646238223061006, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tfirst_two_words\tfn first_two_words(&self) -> (String, String) {\tReturns the request line's method and target, or the status line's version and status." = { answer = "adds_information", confidence = 0.8797726128782326, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tforward\tasync fn forward<R, W>(reader: R, writer: &mut W, direction: Direction, copies: mpsc::UnboundedSender<(Direction, Vec<u8>)>)\tCopies bytes from the reader to the writer until either ends, sending each chunk for decoding as it arrives." = { answer = "adds_information", confidence = 0.702674169271807, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tframe\tfn frame(kind: u8, flags: u8, stream: u32, payload: &[u8]) -> Vec<u8> {\tReturns a frame's bytes." = { answer = "restates_name", confidence = 0.2009304614581895, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tframe_by_fields\tfn frame_by_fields(fields: &[Field]) -> Result<Option<Framing>, String> {\tSays how the fields frame the body: chunked, by length, until the connection closes, or none given." = { answer = "adds_information", confidence = 0.7573732059316043, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tframe_request\tfn frame_request(&mut self, start_line: &[u8], fields: &[Field]) -> Result<Body, String> {\tSays how the request's body is framed and remembers its method for the response." = { answer = "adds_information", confidence = 0.8715778785510637, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tframe_response\tfn frame_response(&mut self, start_line: &[u8], fields: &[Field]) -> Result<Body, String> {\tSays how the response's body is framed, from its status and the method of the request it answers." = { answer = "adds_information", confidence = 0.6411293342368578, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tgives_its_root_in_pem\tpub fn gives_its_root_in_pem<T: Authority>(authority: T) {\tChecks that the root certificate is a PEM certificate." = { answer = "restates_name", confidence = 0.3729433225855743, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\thandle\tasync fn handle(self: Arc<Self>, stream: TcpStream, client: SocketAddr) {\tServes one client connection and writes that it closed." = { answer = "adds_information", confidence = 0.6566813362451085, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\thead_length\tfn head_length(bytes: &[u8]) -> Option<usize> {\tReturns the length of the head at the start of the bytes, its empty last line included, if it is all there." = { answer = "adds_information", confidence = 0.9009564377260216, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\thost_of\tfn host_of(target: &str) -> String {\tReturns the host of a `host:port` target, an IPv6 address without its brackets." = { answer = "adds_information", confidence = 0.8580274749894716, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tis_informational\tfn is_informational(fields: &[Field]) -> bool {\tReturns whether response fields have an informational status, which another response follows." = { answer = "adds_information", confidence = 0.5442664758594584, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tis_root_trusted\tfn is_root_trusted(signer: &RcgenSigner) -> bool {\tReturns whether the operating system trusts a certificate the signer issues, checked as clients check it." = { answer = "adds_information", confidence = 0.6389443198746818, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tis_whitespace\tfn is_whitespace(byte: &u8) -> bool {\tReturns whether the byte is a space or a tab." = { answer = "adds_information", confidence = 0.7340466712535372, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tissue_certificate\tfn issue_certificate(&self, host: &str) -> std::io::Result<Issued>;\tIssues a certificate for a DNS name or an IP address." = { answer = "adds_information", confidence = 0.609119339259717, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tissues_certificates_for_names_and_addresses\tpub fn issues_certificates_for_names_and_addresses<T: Authority>(authority: T) {\tChecks that DNS names and IP addresses each get a chain longer than one certificate, and a key." = { answer = "adds_information", confidence = 0.8975133213324056, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tkeeps_tunnel_bytes_unchanged\tpub fn keeps_tunnel_bytes_unchanged<T: Proxy>(proxy: T) {\tChecks that a CONNECT tunnel carries bytes that are no TLS to the target and back unchanged." = { answer = "adds_information", confidence = 0.878153782487554, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tlistens_on_loopback\tpub fn listens_on_loopback<T: Proxy>(proxy: T) {\tChecks that the proxy listens on a loopback port the operating system picked." = { answer = "adds_information", confidence = 0.620726606707626, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tlocal_address\tfn local_address(&self) -> SocketAddr;\tReturns the address clients connect to." = { answer = "adds_information", confidence = 0.45975810162320374, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tmake_authority\tfn make_authority(folder: &Path, file: &Path) -> std::io::Result<String> {\tMakes a new authority and writes it to the file, unless another process wrote one first; returns the file's text." = { answer = "adds_information", confidence = 0.9322562752986312, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tmessage\tfn message(&mut self, direction: Direction, stream: u32) -> Option<&mut Message> {\tReturns the message the side is sending on the stream, if its fields have come." = { answer = "adds_information", confidence = 0.6272375240279404, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tnames\tfn names(message: &Message) -> Vec<&[u8]> {\tReturns the field names of a message in order." = { answer = "adds_information", confidence = 0.6217800974051324, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tnext_frame\tfn next_frame(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) -> Option<Frame> {\tTakes the next whole frame out of the side's buffer, after the client's preface." = { answer = "adds_information", confidence = 0.6270758137426551, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tof\tfn of(bytes: &'a [u8]) -> Self {\tReturns the bytes as text if they are UTF-8, or else as base64." = { answer = "adds_information", confidence = 0.9649233193275336, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tof\tfn of(connection: u64, message: &'a Message) -> Self {\tReturns the fields written for a message of the connection." = { answer = "adds_information", confidence = 0.3392188109108687, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tof\tfn of(direction: Direction) -> Self {\tReturns the side a direction comes from." = { answer = "adds_information", confidence = 0.7233065967163772, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tof\tfn of(event: &'a Event) -> Self {\tReturns the line for an event, stamped with the time now." = { answer = "adds_information", confidence = 0.8105047695415819, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\topen\tfn open(&self, folder: &Path) -> std::io::Result<Self::Signer>;\tOpens the folder's authority, making it if none; racing processes share one." = { answer = "adds_information", confidence = 0.9740671130122784, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\topen_in_new_folder\tfn open_in_new_folder<T: Authority>(authority: &T) -> T::Signer {\tOpens the authority in a new temporary folder, which it keeps." = { answer = "adds_information", confidence = 0.36548050897324513, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\topens_the_same_authority_from_one_folder\tpub fn opens_the_same_authority_from_one_folder<T: Authority>(authority: T) {\tChecks that opening a folder a second time gives the root the first opening made." = { answer = "adds_information", confidence = 0.7039094530744332, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tpairs_of\tfn pairs_of(fields: &[Field]) -> Vec<(Bytes<'_>, Bytes<'_>)> {\tReturns each field as a `[name, value]` pair, in order." = { answer = "adds_information", confidence = 0.28446531958355337, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tparse_fields\tfn parse_fields(lines: &[&[u8]]) -> Result<Vec<Field>, String> {\tParses field lines, skipping the empty line that ends them and joining obsolete folded lines with a space." = { answer = "adds_information", confidence = 0.981949105991864, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tparse_head\tfn parse_head(head: &[u8], direction: Direction) -> Result<(Vec<u8>, Vec<Field>), String> {\tParses a head into its start line and its fields, checking the start line has the form its side sends." = { answer = "adds_information", confidence = 0.654304738097754, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tpem_contents\tfn pem_contents(pem: &str) -> std::io::Result<Vec<u8>> {\tReturns the DER inside one PEM block." = { answer = "adds_information", confidence = 0.7345305302910234, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tplain_authority\tfn plain_authority(target: &str) -> Option<String> {\tReturns the host of a plain HTTP request's absolute target with its port, the scheme's default if none." = { answer = "adds_information", confidence = 0.8399096437425131, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tread_block\tfn read_block(&mut self, direction: Direction, block: Block, decoded: &mut Vec<Decoded>) -> Result<(), String> {\tDecodes a whole field block and gives its fields to the message they start or end." = { answer = "adds_information", confidence = 0.7444616585797776, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tread_body\tfn read_body(buffer: &mut Vec<u8>, message: &mut Message, framing: Framing) -> Result<Option<Framing>, String> {\tMoves body bytes from the buffer into the message, returning the framing left, or none once the body ended." = { answer = "adds_information", confidence = 0.5631361885443393, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tread_chunk\tfn read_chunk(buffer: &mut Vec<u8>, message: &mut Message, chunk: Chunk) -> Result<Progress, String> {\tReads one step of a chunked body." = { answer = "adds_information", confidence = 0.19074986599754865, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tread_frame\tfn read_frame(&mut self, direction: Direction, frame: Frame, decoded: &mut Vec<Decoded>) -> Result<(), String> {\tReads one frame of the side into the messages of its stream." = { answer = "restates_name", confidence = 0.047117128822162346, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tread_head\tasync fn read_head<T: AsyncRead + Unpin>(stream: &mut T) -> std::io::Result<Head> {\tReads an HTTP/1 head off the stream, ending at its empty line, with whatever was read past it." = { answer = "adds_information", confidence = 0.8107078560993453, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tread_head\tfn read_head(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) -> Option<bool> {\tReads the next message head of the side if it is all there." = { answer = "adds_information", confidence = 0.19899638120275245, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\trefuses_what_is_no_certificate\tpub fn refuses_what_is_no_certificate<T: Trust>(store: T) {\tChecks that text that is no certificate is refused before the store is touched." = { answer = "adds_information", confidence = 0.5982692965667946, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\trelay\tasync fn relay<C, U, D>(&self, connection: u64, client: C, upstream: U, mut decoder: D, first: Vec<u8>)\tForwards bytes both ways until both sides close, handing a copy of each to the decoder." = { answer = "adds_information", confidence = 0.7485222556948397, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\trelease_client\tfn release_client(&mut self, direction: Direction, state: State) -> bool {\tLets the client's held bytes go on in the state once a final response came, returning whether it did." = { answer = "adds_information", confidence = 0.8205724661495324, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\treturns_every_byte_of_what_is_no_http\tpub fn returns_every_byte_of_what_is_no_http<T: Decoder>(decoder: T) {\tChecks that bytes that are no HTTP come out again whole, unparsed, from the side that sent them." = { answer = "adds_information", confidence = 0.14692808927785084, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\troot_certificate\tfn root_certificate(&self) -> String;\tReturns the root certificate to trust, in PEM." = { answer = "adds_information", confidence = 0.7955845887590889, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tserve\tfn serve() -> std::io::Result<()> {\tServes on an ephemeral port until standard output closes, warning first if the root is not trusted." = { answer = "adds_information", confidence = 0.9810584245831202, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tserve\tfn serve(self) -> std::io::Result<()>;\tWrites that it is listening, then serves clients until the sink fails." = { answer = "adds_information", confidence = 0.921110406494786, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tserve_connection\tasync fn serve_connection(&self, connection: u64, mut stream: TcpStream, client: SocketAddr) -> Result<(), String> {\tReads the client's proxy request and serves it as a tunnel or a plain HTTP exchange." = { answer = "adds_information", confidence = 0.9617685421335562, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tserve_tunnel\tasync fn serve_tunnel(\tOpens the CONNECT tunnel and serves it, ending TLS if the client starts it." = { answer = "adds_information", confidence = 0.8140884875450454, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tserver_config\tfn server_config(&self, host: &str, chosen: Option<Vec<u8>>) -> Result<ServerConfig, String> {\tReturns the configuration for the client's side of TLS: a certificate for the host and the chosen protocol." = { answer = "adds_information", confidence = 0.5619510731199366, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tside\tfn side(&mut self, direction: Direction) -> &mut Side {\tReturns the state of the side that sent in the direction." = { answer = "restates_name", confidence = 0.03506176329043065, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tsplit_authority\tfn split_authority(text: &str) -> std::io::Result<(&str, &str)> {\tSplits the file's text into the root certificate's PEM and the private key's PEM." = { answer = "adds_information", confidence = 0.8214809045784413, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tstart_block\tfn start_block(&mut self, direction: Direction, block: Block, flags: u8, decoded: &mut Vec<Decoded>) -> Result<(), String> {\tReads a field block now, or waits for its CONTINUATION frames if the frame did not end it." = { answer = "adds_information", confidence = 0.9052097583837602, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tstart_connection\tfn start_connection(&self) -> Self::Connection;\tStarts decoding a new connection." = { answer = "adds_information", confidence = 0.04028475470972337, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\tstatus_of\tfn status_of(start_line: &[u8]) -> Result<StatusCode, String> {\tReturns the three-digit code after the version in a status line." = { answer = "adds_information", confidence = 0.6255773573399883, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tstep\tfn step(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) -> Option<bool> {\tReads one step of the side, returning none when it needs more bytes." = { answer = "adds_information", confidence = 0.6357400020695372, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\ttake_line\tfn take_line(buffer: &mut Vec<u8>) -> Option<Vec<u8>> {\tRemoves and returns the next whole line from the buffer, without its line ending." = { answer = "adds_information", confidence = 0.7670528054943087, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\ttake_up_to\tfn take_up_to(buffer: &mut Vec<u8>, count: u64, body: &mut Vec<u8>) -> u64 {\tMoves up to the count of bytes from the front of the buffer to the body, returning how many it moved." = { answer = "adds_information", confidence = 0.3062261728906319, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\ttrim_carriage_return\tfn trim_carriage_return(line: &[u8]) -> &[u8] {\tRemoves the carriage return at the end of a line, if it has one." = { answer = "restates_name", confidence = 0.4320502466827907, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\ttrim_whitespace\tfn trim_whitespace(value: &[u8]) -> &[u8] {\tRemoves the spaces and tabs around a value." = { answer = "adds_information", confidence = 0.2103291995596981, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"fn\ttrust\tfn trust() -> std::io::Result<()> {\tAdds the root certificate to the user's trust store, making it first if there is none." = { answer = "adds_information", confidence = 0.9512900167826368, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tunpad\tfn unpad(payload: &[u8], flags: u8) -> Result<&[u8], String> {\tReturns a payload without its padding, if the flags say it has some." = { answer = "adds_information", confidence = 0.5140670786433799, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\tupstream_proxy\tfn upstream_proxy() -> std::io::Result<Option<Upstream>> {\tReturns the upstream proxy the variable names, with any credentials as basic authorization, or none if unset." = { answer = "adds_information", confidence = 0.508289369734436, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\twrite_event\tfn write_event(&self, event: &Event) -> std::io::Result<()>;\tWrites one event in full; an error means nothing more can be written, and the proxy stops." = { answer = "adds_information", confidence = 0.9573460064048592, model = "perplexity/pplx-decider-v1.2-20261016" }
+"fn\twrites_every_kind_of_event\tpub fn writes_every_kind_of_event<T: Sink>(sink: T) {\tChecks that one event of every kind, bytes that are no UTF-8 among them, is written without an error." = { answer = "adds_information", confidence = 0.8217700989661925, model = "perplexity/pplx-decider-v1.2-20261016" }
+"macro_rules\ttests\tmacro_rules! tests {\tRuns each suite function above as its own test on a value made anew for every test." = { answer = "adds_information", confidence = 0.9416009610296044, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tBlock\tstruct Block {\tA field block that started in one frame and goes on in CONTINUATION frames." = { answer = "adds_information", confidence = 0.9249821238181156, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tConnection\tpub struct Connection {\tA connection through the proxy, numbered while it runs, with the target the client asked for." = { answer = "adds_information", confidence = 0.9160377142288344, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tExchange\tstruct Exchange {\tThe request and response of one stream, as far as they have come." = { answer = "adds_information", confidence = 0.8971726981404238, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tExchanged\tstruct Exchanged<'a> {\tA request's or response's fields, each field written as a `[name, value]` pair in order." = { answer = "adds_information", confidence = 0.938972172497377, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tField\tpub struct Field {\tA header or trailer field, byte for byte, its value without surrounding whitespace." = { answer = "adds_information", confidence = 0.928377699815146, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tFrame\tstruct Frame {\tOne frame, taken out of the buffer." = { answer = "adds_information", confidence = 0.7131954004723653, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tHead\tstruct Head {\tA message head read off a connection, with the bytes read after it." = { answer = "adds_information", confidence = 0.8492930130307306, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tHttp1\tpub struct Http1;\tThe HTTP/1 decoder." = { answer = "adds_information", confidence = 0.6732311509211193, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tHttp1Connection\tpub struct Http1Connection(Reader);\tA decoder of one HTTP/1 connection." = { answer = "adds_information", confidence = 0.4831623596754668, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"struct\tHttp2\tpub struct Http2;\tThe HTTP/2 decoder." = { answer = "adds_information", confidence = 0.5799591818145191, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tHttp2Connection\tpub struct Http2Connection(Reader);\tA decoder of one HTTP/2 connection." = { answer = "adds_information", confidence = 0.625748271805838, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tIssued\tpub struct Issued {\tA host certificate's DER chain, root last, and its PKCS #8 DER key." = { answer = "adds_information", confidence = 0.9426188608414294, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tLine\tstruct Line<'a> {\tA JSON line with an event's fields and the time it was written, in Unix milliseconds." = { answer = "adds_information", confidence = 0.9779164132093576, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tMessage\tpub struct Message {\tAn HTTP request or response, its fields in sent order and case." = { answer = "adds_information", confidence = 0.9234414124085176, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tNdJson\tpub struct NdJson;\tA sink of JSON lines on standard output." = { answer = "adds_information", confidence = 0.8979237087588952, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tRcgenAuthority\tpub struct RcgenAuthority;\tThe keeper of authorities in folders." = { answer = "adds_information", confidence = 0.6674461033711383, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tRcgenSigner\tpub struct RcgenSigner {\tAn opened authority with this process's host key and its cache of host certificates." = { answer = "adds_information", confidence = 0.8703795114209822, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tReader\tstruct Reader {\tThe reading of one connection: each side's frames and HPACK table, and the messages of each stream." = { answer = "adds_information", confidence = 0.9098529243335444, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tReader\tstruct Reader {\tThe reading of one connection: each side's state and the methods of the requests still unanswered." = { answer = "adds_information", confidence = 0.8322409204940426, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tShared\tstruct Shared {\tThe state all connections of one proxy share: its signer, sink, upstream and TLS settings." = { answer = "adds_information", confidence = 0.9337506890809416, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tSide\tstruct Side {\tThe bytes one side sent that are not read yet, and the state of reading its frames." = { answer = "adds_information", confidence = 0.9055773053001186, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tSide\tstruct Side {\tThe bytes one side sent that are not read yet, and the state of reading them." = { answer = "adds_information", confidence = 0.922350285819689, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tSystemTrust\tpub struct SystemTrust;\tThe trust store of the system the program runs on." = { answer = "adds_information", confidence = 0.5458531859451541, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tTokioListener\tpub struct TokioListener {\tA proxy bound to a loopback port, not yet serving." = { answer = "adds_information", confidence = 0.9009437334082402, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tTokioProxy\tpub struct TokioProxy;\tThe maker of proxies on tokio, which sign with rcgen and write JSON lines." = { answer = "adds_information", confidence = 0.935677107419645, model = "perplexity/pplx-decider-v1.2-20261016" }
+"struct\tUpstream\tpub struct Upstream {\tAn HTTP proxy to go out through, as `host:port`, with any `Proxy-Authorization` value." = { answer = "adds_information", confidence = 0.963400530355109, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tAuthority\tpub trait Authority: Default {\tA keeper of authorities in folders, each trusted once." = { answer = "adds_information", confidence = 0.6478415699433937, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tConnectionDecoder\tpub trait ConnectionDecoder: Send + 'static {\tA decoder of one connection that gives back every byte, in a message or unparsed." = { answer = "adds_information", confidence = 0.5910047628166935, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tDecoder\tpub trait Decoder {\tAn HTTP version's decoder, which starts one connection decoder per connection." = { answer = "adds_information", confidence = 0.9312498968534896, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tListener\tpub trait Listener: Send + 'static {\tA proxy bound to its port and ready to serve." = { answer = "adds_information", confidence = 0.8377300093247004, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tProxy\tpub trait Proxy {\tA maker of proxies." = { answer = "restates_name", confidence = 0.34244580720113404, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"trait\tSigner\tpub trait Signer: Send + Sync + 'static {\tAn opened authority, which issues host certificates under its root." = { answer = "adds_information", confidence = 0.8746027864007091, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tSink\tpub trait Sink: Default + Send + Sync + 'static {\tA destination for events, shared by every connection." = { answer = "adds_information", confidence = 0.7402812282769557, model = "perplexity/pplx-decider-v1.2-20261016" }
+"trait\tTrust\tpub trait Trust {\tA store of trusted root certificates." = { answer = "adds_information", confidence = 0.9296266634921831, model = "perplexity/pplx-decider-v1.2-20261016" }
+"type\tAuthority\ttype Authority: Authority;\tThe authority whose certificates the proxy presents." = { answer = "adds_information", confidence = 0.8789013534891159, model = "perplexity/pplx-decider-v1.2-20261016" }
+"type\tConnection\ttype Connection: ConnectionDecoder;\tThe state of one connection, started anew for each." = { answer = "adds_information", confidence = 0.5563494813503436, model = "perplexity/pplx-decider-v1.2-20261016" }
+"type\tListener\ttype Listener: Listener;\tA proxy bound to its port." = { answer = "adds_information", confidence = 0.8229608230323278, model = "perplexity/pplx-decider-v1.2-20261016" }
+"type\tSigner\ttype Signer: Signer;\tThe handle to an authority in a folder." = { answer = "adds_information", confidence = 0.7857468609279628, model = "perplexity/pplx-decider-v1.2-20261016" }
+"type\tSink\ttype Sink: Sink;\tThe destination of every event." = { answer = "adds_information", confidence = 0.7272555277115103, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tBody\tBody { message: Message, framing: Framing },\tReading a message's body." = { answer = "restates_name", confidence = 0.2682978214880052, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tChunked\tChunked(Chunk),\tIn chunks, at the given step." = { answer = "adds_information", confidence = 0.15940733800756135, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tClose\tClose,\tWhen the connection closes." = { answer = "adds_information", confidence = 0.42800003735349534, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tData\tData(u64),\tThis many more bytes of the chunk's data." = { answer = "adds_information", confidence = 0.7438690852406211, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tDataEnd\tDataEnd,\tThe line ending after a chunk's data." = { answer = "adds_information", confidence = 0.6018327791257849, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tDone\tDone,\tThe body ended." = { answer = "restates_name", confidence = 0.3980899991925031, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tFramed\tFramed(Framing),\tA body framed so." = { answer = "restates_name", confidence = 0.31208915060183884, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tHead\tHead,\tWaiting for the head of the next message." = { answer = "adds_information", confidence = 0.7711267117987184, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tHeld\tHeld,\tHolding the client's bytes after a request to switch protocols, until the response says whether it did." = { answer = "adds_information", confidence = 0.9310527579920465, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tHold\tHold,\tThe client asked to switch protocols, so what it sends next waits for the response." = { answer = "adds_information", confidence = 0.9129871869001114, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tLength\tLength(u64),\tAfter this many more bytes." = { answer = "adds_information", confidence = 0.5642770674535398, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tNext\tNext(Chunk),\tOn to the next step." = { answer = "restates_name", confidence = 0.49832641355426266, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tNone\tNone,\tNo body; the next message follows." = { answer = "adds_information", confidence = 0.23986315271172276, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+"variant\tSize\tSize,\tThe line with the next chunk's size." = { answer = "adds_information", confidence = 0.7798156422571703, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tSwitch\tSwitch,\tThe connection stops being HTTP after this message." = { answer = "adds_information", confidence = 0.9232526915921356, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tTrailers\tTrailers,\tThe trailer fields after the last chunk." = { answer = "adds_information", confidence = 0.7570857729348832, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tUnparsed\tUnparsed,\tNo longer reading HTTP: after a protocol switch, a tunnel or a fault." = { answer = "adds_information", confidence = 0.9481362346435832, model = "perplexity/pplx-decider-v1.2-20261016" }
+"variant\tWait\tWait(Chunk),\tWaiting at the step for more bytes." = { answer = "adds_information", confidence = 0.21839997725132432, model = "perplexity/pplx-decider-v1.2-20261016", uncertain = true }
+
+[type-summary]
+question = "The first sentence of the documentation of a Rust type is given in the state. What grammatical form is it?"
+subject = "summary"
+
+[type-summary.choices]
+noun_phrase = 'A noun phrase that names what the type is, such as "A contiguous growable array type."'
+sentence_with_a_verb = 'A clause built on a main verb, with or without a subject, such as "This type holds the elements." or "Represents a set of flags."'
+other = 'Neither a noun phrase nor a clause, such as "Used for parsing."'
+
+[type-summary.answers]
+"A JSON line with an event's fields and the time it was written, in Unix milliseconds." = { answer = "noun_phrase", confidence = 0.9623733811059044, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A JSON string for UTF-8 bytes, or an object with their base64 for others." = { answer = "noun_phrase", confidence = 0.8906048880824309, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A connection through the proxy, numbered while it runs, with the target the client asked for." = { answer = "noun_phrase", confidence = 0.9515590378670498, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A decoder of one HTTP/1 connection." = { answer = "noun_phrase", confidence = 0.986264007113908, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A decoder of one HTTP/2 connection." = { answer = "noun_phrase", confidence = 0.984522293166306, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A decoder of one connection that gives back every byte, in a message or unparsed." = { answer = "noun_phrase", confidence = 0.9078370431216513, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A destination for events, shared by every connection." = { answer = "noun_phrase", confidence = 0.8308856983881735, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A field block that started in one frame and goes on in CONTINUATION frames." = { answer = "noun_phrase", confidence = 0.9509685606607732, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A header or trailer field, byte for byte, its value without surrounding whitespace." = { answer = "noun_phrase", confidence = 0.9252060917448464, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A host certificate's DER chain, root last, and its PKCS #8 DER key." = { answer = "noun_phrase", confidence = 0.9631146506899366, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A keeper of authorities in folders, each trusted once." = { answer = "noun_phrase", confidence = 0.9379245713592452, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A maker of proxies." = { answer = "noun_phrase", confidence = 0.9576135836446936, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A message head read off a connection, with the bytes read after it." = { answer = "noun_phrase", confidence = 0.9056026893380212, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A message, bytes that are no HTTP, or a fault ending HTTP on a side." = { answer = "noun_phrase", confidence = 0.925317245205791, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A proxy bound to a loopback port, not yet serving." = { answer = "noun_phrase", confidence = 0.7175694144929206, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A proxy bound to its port and ready to serve." = { answer = "noun_phrase", confidence = 0.7583618518888866, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A proxy bound to its port." = { answer = "noun_phrase", confidence = 0.7583331349119016, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A request or a response." = { answer = "noun_phrase", confidence = 0.945779609143131, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A request's or response's fields, each field written as a `[name, value]` pair in order." = { answer = "noun_phrase", confidence = 0.9474848559433569, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A sink of JSON lines on standard output." = { answer = "noun_phrase", confidence = 0.9631334677865812, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A store of trusted root certificates." = { answer = "noun_phrase", confidence = 0.990841058277088, model = "perplexity/pplx-decider-v1.2-20261016" }
+"A thing the proxy saw: it listens, a connection opens, bytes decode, a request is refused, or it closes." = { answer = "noun_phrase", confidence = 0.5641807526822867, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An HTTP proxy to go out through, as `host:port`, with any `Proxy-Authorization` value." = { answer = "noun_phrase", confidence = 0.9192669631889372, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An HTTP request or response, its fields in sent order and case." = { answer = "noun_phrase", confidence = 0.9390277468180408, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An HTTP version's decoder, which starts one connection decoder per connection." = { answer = "noun_phrase", confidence = 0.8439329426694485, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An announcement, made by a message head, of what follows it." = { answer = "noun_phrase", confidence = 0.924878146414468, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An opened authority with this process's host key and its cache of host certificates." = { answer = "noun_phrase", confidence = 0.9709670164613738, model = "perplexity/pplx-decider-v1.2-20261016" }
+"An opened authority, which issues host certificates under its root." = { answer = "noun_phrase", confidence = 0.7013747367339992, model = "perplexity/pplx-decider-v1.2-20261016" }
+"One frame, taken out of the buffer." = { answer = "noun_phrase", confidence = 0.5645502330848505, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The HTTP/1 decoder." = { answer = "noun_phrase", confidence = 0.9823444677071572, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The HTTP/2 decoder." = { answer = "noun_phrase", confidence = 0.9737373708956432, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The authority whose certificates the proxy presents." = { answer = "noun_phrase", confidence = 0.83086059038861, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The bytes one side sent that are not read yet, and the state of reading its frames." = { answer = "noun_phrase", confidence = 0.8911755358022424, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The bytes one side sent that are not read yet, and the state of reading them." = { answer = "noun_phrase", confidence = 0.9272309108055212, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The destination of every event." = { answer = "noun_phrase", confidence = 0.9410730716766352, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The fields of each kind of event, the kind's name written under `event`." = { answer = "noun_phrase", confidence = 0.8616308237055166, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The handle to an authority in a folder." = { answer = "noun_phrase", confidence = 0.9757976824431382, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The keeper of authorities in folders." = { answer = "noun_phrase", confidence = 0.938518773113852, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The maker of proxies on tokio, which sign with rcgen and write JSON lines." = { answer = "noun_phrase", confidence = 0.8774216916152269, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The outcome of one step of a chunked body." = { answer = "noun_phrase", confidence = 0.9629625771575396, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The reading of one connection: each side's frames and HPACK table, and the messages of each stream." = { answer = "noun_phrase", confidence = 0.855073716217229, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The reading of one connection: each side's state and the methods of the requests still unanswered." = { answer = "noun_phrase", confidence = 0.7932411657070596, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The reading state of one side." = { answer = "noun_phrase", confidence = 0.9541142808638672, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The request and response of one stream, as far as they have come." = { answer = "noun_phrase", confidence = 0.8480073082443085, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The result of adding a root: newly trusted, or trusted before and left alone." = { answer = "noun_phrase", confidence = 0.7539204760026156, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The rule that ends a body." = { answer = "noun_phrase", confidence = 0.9309972561139346, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The side of a connection that sent some bytes." = { answer = "noun_phrase", confidence = 0.7621835698095337, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The side that sent some bytes, written in lower case." = { answer = "noun_phrase", confidence = 0.5708589060378436, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The state all connections of one proxy share: its signer, sink, upstream and TLS settings." = { answer = "noun_phrase", confidence = 0.6303186105064241, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The state of one connection, started anew for each." = { answer = "noun_phrase", confidence = 0.7163902648390164, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The step of reading a chunked body." = { answer = "noun_phrase", confidence = 0.8539452294289419, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The trust store of the system the program runs on." = { answer = "noun_phrase", confidence = 0.9606035198392154, model = "perplexity/pplx-decider-v1.2-20261016" }
+
+[verb-position]
+question = "A Rust method is named as given in the state. Where is the verb in the name?"
+subject = "name"
+
+[verb-position.choices]
+first_word = "The first word of the name is a verb."
+later_word = "The name contains a verb, but it is not the first word."
+no_verb = "The name contains no verb; it is a noun phrase."
+
+[verb-position.answers]
+add_to_store = { answer = "first_word", confidence = 0.997507026986927, model = "perplexity/pplx-decider-v1.2-20261016" }
+add_trusted_root = { answer = "first_word", confidence = 0.9968991041344526, model = "perplexity/pplx-decider-v1.2-20261016" }
+advance = { answer = "first_word", confidence = 0.939220285167158, model = "perplexity/pplx-decider-v1.2-20261016" }
+bind = { answer = "first_word", confidence = 0.9704988633088668, model = "perplexity/pplx-decider-v1.2-20261016" }
+bind_proxy = { answer = "first_word", confidence = 0.9843567225107792, model = "perplexity/pplx-decider-v1.2-20261016" }
+blank_lines_length = { answer = "no_verb", confidence = 0.9676179700228236, model = "perplexity/pplx-decider-v1.2-20261016" }
+client_config = { answer = "no_verb", confidence = 0.8575882138081788, model = "perplexity/pplx-decider-v1.2-20261016" }
+connect = { answer = "first_word", confidence = 0.98761998348364, model = "perplexity/pplx-decider-v1.2-20261016" }
+data_folder = { answer = "no_verb", confidence = 0.9919892600760648, model = "perplexity/pplx-decider-v1.2-20261016" }
+decode = { answer = "first_word", confidence = 0.9765453495895056, model = "perplexity/pplx-decider-v1.2-20261016" }
+decodes_nothing_from_no_bytes = { answer = "first_word", confidence = 0.9741239399972378, model = "perplexity/pplx-decider-v1.2-20261016" }
+emit = { answer = "first_word", confidence = 0.9832451190548132, model = "perplexity/pplx-decider-v1.2-20261016" }
+emit_decoded = { answer = "first_word", confidence = 0.985294460276889, model = "perplexity/pplx-decider-v1.2-20261016" }
+end_message = { answer = "first_word", confidence = 0.9643729656793396, model = "perplexity/pplx-decider-v1.2-20261016" }
+every_kind_of_event = { answer = "no_verb", confidence = 0.9606893802381558, model = "perplexity/pplx-decider-v1.2-20261016" }
+fail = { answer = "first_word", confidence = 0.9573498198232242, model = "perplexity/pplx-decider-v1.2-20261016" }
+find_field = { answer = "first_word", confidence = 0.9957892502388556, model = "perplexity/pplx-decider-v1.2-20261016" }
+find_list_values = { answer = "first_word", confidence = 0.9908155030773808, model = "perplexity/pplx-decider-v1.2-20261016" }
+finish = { answer = "first_word", confidence = 0.9805604194929286, model = "perplexity/pplx-decider-v1.2-20261016" }
+finishes_once = { answer = "first_word", confidence = 0.9577510575084304, model = "perplexity/pplx-decider-v1.2-20261016" }
+first_two_words = { answer = "no_verb", confidence = 0.9328879763361698, model = "perplexity/pplx-decider-v1.2-20261016" }
+forward = { answer = "first_word", confidence = 0.5021561594488981, model = "perplexity/pplx-decider-v1.2-20261016" }
+frame_by_fields = { answer = "no_verb", confidence = 0.5571140543727985, model = "perplexity/pplx-decider-v1.2-20261016" }
+frame_request = { answer = "first_word", confidence = 0.8361378177994917, model = "perplexity/pplx-decider-v1.2-20261016" }
+frame_response = { answer = "first_word", confidence = 0.8400578310178974, model = "perplexity/pplx-decider-v1.2-20261016" }
+gives_its_root_in_pem = { answer = "first_word", confidence = 0.9700645514389754, model = "perplexity/pplx-decider-v1.2-20261016" }
+handle = { answer = "first_word", confidence = 0.7950588364375799, model = "perplexity/pplx-decider-v1.2-20261016" }
+head_length = { answer = "no_verb", confidence = 0.9798261852379156, model = "perplexity/pplx-decider-v1.2-20261016" }
+host_of = { answer = "no_verb", confidence = 0.570604435892533, model = "perplexity/pplx-decider-v1.2-20261016" }
+is_informational = { answer = "first_word", confidence = 0.9411196911099368, model = "perplexity/pplx-decider-v1.2-20261016" }
+is_root_trusted = { answer = "first_word", confidence = 0.7820213546632567, model = "perplexity/pplx-decider-v1.2-20261016" }
+is_whitespace = { answer = "first_word", confidence = 0.9142846721509218, model = "perplexity/pplx-decider-v1.2-20261016" }
+issue_certificate = { answer = "first_word", confidence = 0.9817399702742292, model = "perplexity/pplx-decider-v1.2-20261016" }
+issues_certificates_for_names_and_addresses = { answer = "first_word", confidence = 0.9511080719118936, model = "perplexity/pplx-decider-v1.2-20261016" }
+keeps_tunnel_bytes_unchanged = { answer = "first_word", confidence = 0.9581451598032596, model = "perplexity/pplx-decider-v1.2-20261016" }
+listens_on_loopback = { answer = "first_word", confidence = 0.9797118275475164, model = "perplexity/pplx-decider-v1.2-20261016" }
+local_address = { answer = "no_verb", confidence = 0.9893598169120156, model = "perplexity/pplx-decider-v1.2-20261016" }
+make_authority = { answer = "first_word", confidence = 0.9852105528332068, model = "perplexity/pplx-decider-v1.2-20261016" }
+message = { answer = "no_verb", confidence = 0.6063646238244684, model = "perplexity/pplx-decider-v1.2-20261016" }
+next_frame = { answer = "no_verb", confidence = 0.5174103860382511, model = "perplexity/pplx-decider-v1.2-20261016" }
+of = { answer = "no_verb", confidence = 0.6840269164162978, model = "perplexity/pplx-decider-v1.2-20261016" }
+open = { answer = "first_word", confidence = 0.9835637400737955, model = "perplexity/pplx-decider-v1.2-20261016" }
+open_in_new_folder = { answer = "first_word", confidence = 0.9948563829069236, model = "perplexity/pplx-decider-v1.2-20261016" }
+opens_the_same_authority_from_one_folder = { answer = "first_word", confidence = 0.987497313980098, model = "perplexity/pplx-decider-v1.2-20261016" }
+pairs_of = { answer = "no_verb", confidence = 0.8302459201923733, model = "perplexity/pplx-decider-v1.2-20261016" }
+parse_fields = { answer = "first_word", confidence = 0.996863948455276, model = "perplexity/pplx-decider-v1.2-20261016" }
+parse_head = { answer = "first_word", confidence = 0.986394239425544, model = "perplexity/pplx-decider-v1.2-20261016" }
+pem_contents = { answer = "no_verb", confidence = 0.9711248144979576, model = "perplexity/pplx-decider-v1.2-20261016" }
+plain_authority = { answer = "no_verb", confidence = 0.58344930557302, model = "perplexity/pplx-decider-v1.2-20261016" }
+read_block = { answer = "first_word", confidence = 0.9903335558120114, model = "perplexity/pplx-decider-v1.2-20261016" }
+read_body = { answer = "first_word", confidence = 0.9965471355644048, model = "perplexity/pplx-decider-v1.2-20261016" }
+read_chunk = { answer = "first_word", confidence = 0.98687170776795, model = "perplexity/pplx-decider-v1.2-20261016" }
+read_frame = { answer = "first_word", confidence = 0.9956674549679478, model = "perplexity/pplx-decider-v1.2-20261016" }
+read_head = { answer = "first_word", confidence = 0.9962314802028271, model = "perplexity/pplx-decider-v1.2-20261016" }
+refuses_what_is_no_certificate = { answer = "first_word", confidence = 0.8906693279076061, model = "perplexity/pplx-decider-v1.2-20261016" }
+relay = { answer = "first_word", confidence = 0.7992085838880395, model = "perplexity/pplx-decider-v1.2-20261016" }
+release_client = { answer = "first_word", confidence = 0.9960670815306776, model = "perplexity/pplx-decider-v1.2-20261016" }
+returns_every_byte_of_what_is_no_http = { answer = "first_word", confidence = 0.9386857698067812, model = "perplexity/pplx-decider-v1.2-20261016" }
+root_certificate = { answer = "no_verb", confidence = 0.9674691786982856, model = "perplexity/pplx-decider-v1.2-20261016" }
+serve = { answer = "first_word", confidence = 0.9701689612586452, model = "perplexity/pplx-decider-v1.2-20261016" }
+serve_connection = { answer = "first_word", confidence = 0.9808311805227624, model = "perplexity/pplx-decider-v1.2-20261016" }
+serve_tunnel = { answer = "first_word", confidence = 0.95193949118021, model = "perplexity/pplx-decider-v1.2-20261016" }
+server_config = { answer = "no_verb", confidence = 0.8575862162413929, model = "perplexity/pplx-decider-v1.2-20261016" }
+side = { answer = "no_verb", confidence = 0.9827259907131306, model = "perplexity/pplx-decider-v1.2-20261016" }
+split_authority = { answer = "first_word", confidence = 0.9815748393963156, model = "perplexity/pplx-decider-v1.2-20261016" }
+start_block = { answer = "first_word", confidence = 0.9651906343926712, model = "perplexity/pplx-decider-v1.2-20261016" }
+start_connection = { answer = "first_word", confidence = 0.9849015603326234, model = "perplexity/pplx-decider-v1.2-20261016" }
+status_of = { answer = "no_verb", confidence = 0.9106395434894868, model = "perplexity/pplx-decider-v1.2-20261016" }
+step = { answer = "first_word", confidence = 0.6566328563637256, model = "perplexity/pplx-decider-v1.2-20261016" }
+take_line = { answer = "first_word", confidence = 0.9917721886844834, model = "perplexity/pplx-decider-v1.2-20261016" }
+take_up_to = { answer = "first_word", confidence = 0.9390209442994442, model = "perplexity/pplx-decider-v1.2-20261016" }
+trim_carriage_return = { answer = "first_word", confidence = 0.9891110621200108, model = "perplexity/pplx-decider-v1.2-20261016" }
+trim_whitespace = { answer = "first_word", confidence = 0.9961145493397344, model = "perplexity/pplx-decider-v1.2-20261016" }
+trust = { answer = "first_word", confidence = 0.5720916256322433, model = "perplexity/pplx-decider-v1.2-20261016" }
+unpad = { answer = "first_word", confidence = 0.920808156328443, model = "perplexity/pplx-decider-v1.2-20261016" }
+upstream_proxy = { answer = "no_verb", confidence = 0.8677800332606643, model = "perplexity/pplx-decider-v1.2-20261016" }
+write_event = { answer = "first_word", confidence = 0.9901479267710532, model = "perplexity/pplx-decider-v1.2-20261016" }
+writes_every_kind_of_event = { answer = "first_word", confidence = 0.981431389382003, model = "perplexity/pplx-decider-v1.2-20261016" }

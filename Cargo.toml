@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["crates/authority","crates/authority/conformance","crates/authority/implementation/rcgen","crates/decoder","crates/decoder/conformance","crates/decoder/implementation/http1","crates/decoder/implementation/http2","crates/proxy","crates/proxy/conformance","crates/proxy/implementation/tokio","crates/sink","crates/sink/conformance","crates/sink/implementation/ndjson","crates/trust","crates/trust/conformance","crates/trust/implementation/system"]
+
+[workspace.lints]
+
+[workspace.metadata.reviewable]
+prefix = "simple-httptap"
