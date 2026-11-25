@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use simple_httptap_decoder::Direction;
+use simple_httptap_proxy::Mode;
 use simple_httptap_sink::{Connection, Event, Transport};
 use tokio::io::AsyncReadExt;
 use tokio::net::{TcpStream, UdpSocket};
@@ -15,7 +16,8 @@ use tokio::sync::mpsc;
 
 use crate::Shared;
 use crate::socks::{self, Address, Status};
-use crate::watch::Watch;
+use crate::quic;
+use crate::watch::{Watch, is_quic_start};
 
 /// The largest datagram a UDP socket carries, with room for the SOCKS5 header in front.
 const DATAGRAM_LIMIT: usize = 65_535;
@@ -100,17 +102,32 @@ async fn run_flow(
     mut from_client: mpsc::UnboundedReceiver<Vec<u8>>,
     replies: mpsc::UnboundedSender<Datagram>,
 ) {
+    let Some(first) = from_client.recv().await else { return };
+    let connection = Connection { id, client, target: target.to_string(), transport: Transport::Udp, tls: false, protocol: None };
+    let (copies, received) = mpsc::unbounded_channel();
+    let watching = tokio::spawn(Watch::new(Arc::clone(&shared), connection).run(received));
+    if shared.mode == Mode::Intercept && is_quic_start(&first) {
+        if let Err(detail) = quic::intercept(Arc::clone(&shared), client, target, first, from_client, replies, copies).await {
+            shared.emit(Event::Refused { connection: id, detail });
+        }
+        let _ = watching.await;
+        return;
+    }
     let outbound = match Outbound::open(&shared, &target).await {
         Ok(outbound) => outbound,
         Err(fault) => {
             shared.emit(Event::Refused { connection: id, detail: format!("relaying UDP to {target}: {fault}") });
-            shared.emit(Event::Closed { connection: id });
+            drop(copies);
+            let _ = watching.await;
             return;
         }
     };
-    let connection = Connection { id, client, target: target.to_string(), transport: Transport::Udp, tls: false, protocol: None };
-    let (copies, received) = mpsc::unbounded_channel();
-    let watching = tokio::spawn(Watch::new(Arc::clone(&shared), connection).run(received));
+    let _ = copies.send((Direction::Client, first.clone()));
+    if outbound.send(&first).await.is_err() {
+        drop(copies);
+        let _ = watching.await;
+        return;
+    }
     let mut buffer = vec![u8::MIN; DATAGRAM_LIMIT];
     loop {
         tokio::select! {

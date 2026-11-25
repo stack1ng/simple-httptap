@@ -204,7 +204,11 @@ mod macos {
                 return Err(std::io::Error::from_raw_os_error(initialised));
             }
             libc::posix_spawnattr_setflags(&mut attributes, POSIX_SPAWN_START_SUSPENDED);
-            let spawned = libc::posix_spawnp(&mut pid, path.as_ptr(), std::ptr::null(), &attributes, argv.as_ptr(), envp.as_ptr());
+            let mut actions: libc::posix_spawn_file_actions_t = std::ptr::null_mut();
+            libc::posix_spawn_file_actions_init(&mut actions);
+            libc::posix_spawn_file_actions_adddup2(&mut actions, libc::STDERR_FILENO, libc::STDOUT_FILENO);
+            let spawned = libc::posix_spawnp(&mut pid, path.as_ptr(), &actions, &attributes, argv.as_ptr(), envp.as_ptr());
+            libc::posix_spawn_file_actions_destroy(&mut actions);
             libc::posix_spawnattr_destroy(&mut attributes);
             spawned
         };

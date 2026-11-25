@@ -250,7 +250,7 @@ impl Watch {
 }
 
 /// Returns whether a datagram is the first of a QUIC connection: long enough, with a long header of a known version.
-fn is_quic_start(datagram: &[u8]) -> bool {
+pub(crate) fn is_quic_start(datagram: &[u8]) -> bool {
     let Some(&first) = datagram.first() else { return false };
     datagram.len() >= QUIC_FIRST_DATAGRAM
         && first & (QUIC_LONG_HEADER | QUIC_FIXED_BIT) == QUIC_LONG_HEADER | QUIC_FIXED_BIT

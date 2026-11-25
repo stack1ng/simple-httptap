@@ -29,6 +29,7 @@ final class ControlServer {
     private let lock = NSLock()
     private var captures: [Int32: Capture] = [:]
     private var idleGeneration = 0
+    private var stopped = false
     private let onIdle: () -> Void
 
     init(onIdle: @escaping () -> Void) throws {
@@ -72,10 +73,23 @@ final class ControlServer {
         }
     }
 
-    /// Stops accepting clients and removes the socket.
+    /// Stops accepting clients and removes the socket, so no httptap can register with a proxy that is stopping.
     func stop() {
-        close(listener)
+        lock.lock()
+        let wasStopped = stopped
+        stopped = true
+        lock.unlock()
+        if wasStopped { return }
         unlink(controlSocketPath)
+        shutdown(listener, SHUT_RDWR)
+        close(listener)
+    }
+
+    /// Returns whether the server stopped.
+    var isStopped: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return stopped
     }
 
     /// Returns the capture a process belongs to: one whose program is the process or one of its ancestors.
@@ -132,7 +146,7 @@ final class ControlServer {
         lock.lock()
         captures[client] = capture
         lock.unlock()
-        log.info("capturing process \(pid, privacy: .public) through \(words[1], privacy: .public):\(port, privacy: .public)")
+        log.notice("capturing process \(pid, privacy: .public) through \(words[1], privacy: .public):\(port, privacy: .public)")
         return "ok\n"
     }
 
@@ -158,7 +172,10 @@ final class ControlServer {
             lock.lock()
             let idle = captures.isEmpty && generation == idleGeneration
             lock.unlock()
-            if idle { onIdle() }
+            if idle {
+                stop()
+                onIdle()
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ workspace = true
 directories = "6.0.0"
 futures-util = "0.3.34"
 percent-encoding = "2.3.2"
+quinn = { version = "0.11.12", default-features = false, features = ["runtime-tokio", "rustls-ring", "log"] }
 rustls-platform-verifier = "0.7.1"
 simple-httptap-authority = { version = "0.0.3", path = "../../../authority" }
 simple-httptap-authority-rcgen = { version = "0.0.3", path = "../../../authority/implementation/rcgen" }

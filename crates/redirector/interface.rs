@@ -13,6 +13,9 @@ pub trait Redirector {
 
     /// Starts the program with its traffic, and its descendants', going through the SOCKS5 proxy at the address.
     ///
+    /// The program's standard output goes to this process's standard error, so this process's standard output carries
+    /// only what it writes itself; its standard input and standard error are this process's.
+    ///
     /// An error of kind `Unsupported` means this system cannot redirect, and says what it lacks.
     fn launch(&self, program: &Program, proxy: SocketAddr) -> std::io::Result<Self::Capture>;
 }

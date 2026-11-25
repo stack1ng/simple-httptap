@@ -14,9 +14,9 @@ class TransparentProxyProvider: NETransparentProxyProvider {
     var server: ControlServer?
 
     override func startProxy(options: [String: Any]? = nil) async throws {
-        log.debug("Starting proxy...")
+        log.notice("starting the proxy")
         let server = try ControlServer(onIdle: { [weak self] in
-            log.info("no program is captured any more, stopping the proxy")
+            log.notice("no program is captured any more, stopping the proxy")
             self?.cancelProxyWithError(nil)
         })
         server.start()
@@ -47,7 +47,7 @@ class TransparentProxyProvider: NETransparentProxyProvider {
 
     override func handleNewFlow(_ flow: NEAppProxyFlow) -> Bool {
         // Every new flow on the system comes here; only those of a captured program's process tree are taken.
-        guard let server,
+        guard let server, !server.isStopped,
               let pid = Processes.pid(fromAuditToken: flow.metaData.sourceAppAuditToken),
               let capture = server.capture(forPid: pid)
         else { return false }

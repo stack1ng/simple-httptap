@@ -3,6 +3,7 @@
 //! The watch decrypts TLS and QUIC with the secrets in the key log and decodes what they carry. When the proxy
 //! intercepts, it ends the client's TLS itself and logs the secrets of its own TLS to servers in the same key log.
 
+mod quic;
 mod socks;
 mod tcp;
 mod udp;
