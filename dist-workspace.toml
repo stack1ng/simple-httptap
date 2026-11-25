@@ -19,6 +19,8 @@ targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "aarch64-unknown-linux
 install-path = "CARGO_HOME"
 # Whether to install an updater program
 install-updater = false
+# Build every release artifact on pull requests too, uploaded but not published, so a release never breaks first on a tag
+pr-run-mode = "upload"
 # Steps before each build: on macOS, build and notarize httptap.app for the binaries to carry
 github-build-setup = "../build-setup.yml"
 

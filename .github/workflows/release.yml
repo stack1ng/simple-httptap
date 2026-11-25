@@ -152,6 +152,10 @@ jobs:
           "APPLE_APP_PASSWORD": "${{ secrets.APPLE_APP_PASSWORD }}"
           "APPLE_ID": "${{ secrets.APPLE_ID }}"
           "APPLE_TEAM_ID": "${{ secrets.APPLE_TEAM_ID }}"
+      - uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ join(matrix.targets, '-') }}
+          cache-provider: ${{ matrix.cache_provider }}
       - name: Install dist
         run: ${{ matrix.install_dist.run }}
       # Get the dist-manifest
