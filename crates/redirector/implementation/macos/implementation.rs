@@ -285,9 +285,17 @@ mod macos {
     /// Another httptap may be starting the extension at the same time, so the socket is what counts, not the app's
     /// exit status, which only names the cause when the socket never answers.
     fn connect_control() -> std::io::Result<UnixStream> {
+        if super::embedded::replace_if_other_build(Path::new(APP))? {
+            return start_and_connect();
+        }
         if let Ok(stream) = UnixStream::connect(CONTROL_SOCKET) {
             return greeted(stream);
         }
+        start_and_connect()
+    }
+
+    /// Runs the app, which starts the extension, and connects to its control socket once it answers.
+    fn start_and_connect() -> std::io::Result<UnixStream> {
         let started = start_extension();
         let wait = if started.is_ok() { START_WAIT } else { RACE_WAIT };
         let since = Instant::now();
@@ -431,6 +439,12 @@ mod embedded {
     /// The end of the name of the temporary copy of the zipped app.
     #[cfg(httptap_embedded_app)]
     const ZIP_EXTENSION: &str = ".zip";
+    /// The information property list of the app this build carries, which differs between any two builds of it.
+    #[cfg(httptap_embedded_app)]
+    const EMBEDDED_INFO_PLIST: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/Info.plist"));
+    /// The app's information property list inside its bundle.
+    #[cfg(httptap_embedded_app)]
+    const INFO_PLIST: &str = "Contents/Info.plist";
     /// The tool that unpacks the zipped app, keeping the bundle's signature and extended attributes.
     #[cfg(httptap_embedded_app)]
     const DITTO: &str = "/usr/bin/ditto";
@@ -439,6 +453,30 @@ mod embedded {
     /// https://keith.github.io/xcode-man-pages/ditto.1.html
     #[cfg(httptap_embedded_app)]
     const DITTO_EXTRACT_ZIP: [&str; 2] = ["-x", "-k"];
+
+    /// Replaces an installed app whose build differs from the one this build carries, returning whether it did.
+    ///
+    /// The replaced app's extension is then replaced when the app next starts it, which ends running captures loudly.
+    pub(super) fn replace_if_other_build(app: &Path) -> std::io::Result<bool> {
+        #[cfg(httptap_embedded_app)]
+        {
+            let installed = std::fs::read(app.join(INFO_PLIST)).ok();
+            if installed.as_deref() == Some(EMBEDDED_INFO_PLIST) {
+                return Ok(false);
+            }
+            if installed.is_some() {
+                eprintln!("httptap: replacing {} with the one this httptap carries", app.display());
+                std::fs::remove_dir_all(app)?;
+            }
+            install(app)?;
+            Ok(true)
+        }
+        #[cfg(not(httptap_embedded_app))]
+        {
+            let _ = app;
+            Ok(false)
+        }
+    }
 
     /// Unpacks the app this build carries into the folder macOS installs system extensions from.
     pub(super) fn install(app: &Path) -> std::io::Result<()> {

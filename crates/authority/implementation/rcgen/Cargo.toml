@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-authority-rcgen"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -17,7 +17,7 @@ workspace = true
 [dependencies]
 pem = "4.0.0"
 rcgen = { version = "0.14.10", default-features = false, features = ["ring", "pem", "x509-parser"] }
-simple-httptap-authority = { version = "0.0.3", path = "../.." }
+simple-httptap-authority = { version = "0.1.0", path = "../.." }
 tempfile = "3.27.0"
 time = "0.3.55"
 url = "2.5.9"

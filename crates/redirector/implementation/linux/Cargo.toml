@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-redirector-linux"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 
 [lib]
@@ -15,7 +15,7 @@ name = "redirection"
 path = "redirection_test.rs"
 
 [dependencies]
-simple-httptap-redirector = { version = "0.0.3", path = "../.." }
+simple-httptap-redirector = { version = "0.1.0", path = "../.." }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2.191"

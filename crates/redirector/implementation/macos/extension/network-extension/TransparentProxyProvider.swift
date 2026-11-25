@@ -62,7 +62,9 @@ class TransparentProxyProvider: NETransparentProxyProvider {
                     tcpFlow.inboundCopier(connection)
                 } catch {
                     log.error("TCP flow of process \(pid, privacy: .public) to \(remote.hostname, privacy: .public):\(port, privacy: .public) failed: \(String(describing: error), privacy: .public)")
-                    server.report(capture, "TCP from process \(pid) to \(remote.hostname):\(port): \(error)")
+                    if !closedByProgram(error) {
+                        server.report(capture, "TCP from process \(pid) to \(remote.hostname):\(port): \(error)")
+                    }
                     tcpFlow.closeReadWithError(error)
                     tcpFlow.closeWriteWithError(error)
                 }
@@ -78,7 +80,9 @@ class TransparentProxyProvider: NETransparentProxyProvider {
                     udpFlow.inboundCopier(relay, control: control)
                 } catch {
                     log.error("UDP flow of process \(pid, privacy: .public) failed: \(String(describing: error), privacy: .public)")
-                    server.report(capture, "UDP from process \(pid): \(error)")
+                    if !closedByProgram(error) {
+                        server.report(capture, "UDP from process \(pid): \(error)")
+                    }
                     udpFlow.closeReadWithError(error)
                     udpFlow.closeWriteWithError(error)
                 }
@@ -87,4 +91,11 @@ class TransparentProxyProvider: NETransparentProxyProvider {
         }
         return false
     }
+}
+
+/// Returns whether a flow failed because the program itself closed it first, as browsers do with speculative
+/// connections, which is no failure of capture.
+func closedByProgram(_ error: Error) -> Bool {
+    guard let error = error as? NEAppProxyFlowError else { return false }
+    return error.code == .peerReset || error.code == .aborted
 }

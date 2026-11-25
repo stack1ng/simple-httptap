@@ -127,6 +127,31 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           fi
+      - name: "Import the Developer ID certificate into a throwaway keychain"
+        if: "runner.os == 'macOS'"
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(openssl rand -hex 16)
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+        env:
+          "MACOS_CERTIFICATE": "${{ secrets.MACOS_CERTIFICATE }}"
+          "MACOS_CERTIFICATE_PWD": "${{ secrets.MACOS_CERTIFICATE_PWD }}"
+      - name: "Build, sign and notarize httptap.app"
+        if: "runner.os == 'macOS'"
+        run: |
+          crates/redirector/implementation/macos/extension/build-app.sh "$RUNNER_TEMP/httptap-app.zip"
+          echo "HTTPTAP_REDIRECTOR_APP_ZIP=$RUNNER_TEMP/httptap-app.zip" >> "$GITHUB_ENV"
+        env:
+          "APPLE_APP_PASSWORD": "${{ secrets.APPLE_APP_PASSWORD }}"
+          "APPLE_ID": "${{ secrets.APPLE_ID }}"
+          "APPLE_TEAM_ID": "${{ secrets.APPLE_TEAM_ID }}"
       - name: Install dist
         run: ${{ matrix.install_dist.run }}
       # Get the dist-manifest

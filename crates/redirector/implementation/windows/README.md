@@ -41,7 +41,7 @@ the current folder) at run time; the DLL installs the driver from its own folder
   asks. Delete the folder to get the shipped files back.
 - WinDivert ships only for x64; on ARM64 Windows `launch` returns `Unsupported`.
 
-WinDivert is dual-licensed LGPLv3 or GPLv2; its license is in `windivert/LICENSE`, and a release must carry it.
+WinDivert is dual-licensed LGPLv3 or GPLv2; its license is in `windivert/LICENSE-WinDivert`, and a release must carry it.
 
 ## Licenses
 

@@ -1,31 +1,37 @@
 #!/bin/sh
 # Builds httptap.app with its network extension, signs it with Developer ID, notarizes and staples it, and zips it.
 #
-#   build-app.sh <output.zip> [notary keychain profile]
+#   build-app.sh <output.zip>
 #
-# Signing is Xcode's automatic signing with -allowProvisioningUpdates: the archive is signed for development, and the
-# Developer ID export re-signs it, turning the app-proxy-provider entitlement into app-proxy-provider-systemextension
-# and making the Developer ID provisioning profiles. That is why the entitlements files say app-proxy-provider.
-# Notarization uses a notarytool keychain profile (default: persona-notary), or NOTARY_KEY/NOTARY_KEY_ID/NOTARY_ISSUER
-# for an App Store Connect API key, as CI has.
+# No Apple account login is needed: the build is unsigned, then signed here with the Developer ID identity in the
+# keychain and the Developer ID profiles and entitlements in signing/.
+# HTTPTAP_SIGNING_IDENTITY picks the identity (default: "Developer ID Application").
+# Notarization uses APPLE_ID, APPLE_APP_PASSWORD and APPLE_TEAM_ID when set, as in CI, and otherwise the notarytool
+# keychain profile in NOTARY_PROFILE (default: persona-notary).
 set -eu
 output=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
-profile=${2:-persona-notary}
 here=$(cd "$(dirname "$0")" && pwd)
+identity=${HTTPTAP_SIGNING_IDENTITY:-Developer ID Application}
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-xcodebuild archive -project "$here/macos-redirector.xcodeproj" -scheme macos-redirector -configuration Release \
-  -destination 'generic/platform=macOS' -archivePath "$work/httptap.xcarchive" -allowProvisioningUpdates -quiet
-xcodebuild -exportArchive -archivePath "$work/httptap.xcarchive" -exportOptionsPlist "$here/ExportOptions.plist" \
-  -exportPath "$work/export" -allowProvisioningUpdates -quiet
-ditto -c -k --keepParent "$work/export/httptap.app" "$work/submit.zip"
-if [ -n "${NOTARY_KEY:-}" ]; then
-  xcrun notarytool submit "$work/submit.zip" --key "$NOTARY_KEY" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER" --wait
+xcodebuild build -project "$here/macos-redirector.xcodeproj" -scheme macos-redirector -configuration Release \
+  -destination 'generic/platform=macOS' -derivedDataPath "$work/build" CODE_SIGNING_ALLOWED=NO -quiet
+app="$work/build/Build/Products/Release/httptap.app"
+extension="$app/Contents/Library/SystemExtensions/com.stack1ng.simplehttptap.redirector.systemextension"
+cp "$here/signing/redirector.provisionprofile" "$extension/Contents/embedded.provisionprofile"
+cp "$here/signing/app.provisionprofile" "$app/Contents/embedded.provisionprofile"
+codesign --force --timestamp --options runtime --entitlements "$here/signing/redirector.entitlements" -s "$identity" "$extension"
+codesign --force --timestamp --options runtime --entitlements "$here/signing/app.entitlements" -s "$identity" "$app"
+codesign --verify --strict --deep "$app"
+
+ditto -c -k --keepParent "$app" "$work/submit.zip"
+if [ -n "${APPLE_ID:-}" ]; then
+  xcrun notarytool submit "$work/submit.zip" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
 else
-  xcrun notarytool submit "$work/submit.zip" --keychain-profile "$profile" --wait
+  xcrun notarytool submit "$work/submit.zip" --keychain-profile "${NOTARY_PROFILE:-persona-notary}" --wait
 fi
-xcrun stapler staple "$work/export/httptap.app"
-spctl -a -vv "$work/export/httptap.app"
-ditto -c -k --keepParent "$work/export/httptap.app" "$output"
+xcrun stapler staple "$app"
+spctl -a -vv "$app"
+ditto -c -k --keepParent "$app" "$output"
 echo "built $output"

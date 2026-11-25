@@ -1362,11 +1362,11 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "simple-httptap-authority"
-version = "0.0.3"
+version = "0.1.0"
 
 [[package]]
 name = "simple-httptap-authority-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-authority",
  "tempfile",
@@ -1374,7 +1374,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-authority-rcgen"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "pem 4.0.0",
  "rcgen",
@@ -1388,18 +1388,18 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decoder"
-version = "0.0.3"
+version = "0.1.0"
 
 [[package]]
 name = "simple-httptap-decoder-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-decoder",
 ]
 
 [[package]]
 name = "simple-httptap-decoder-http1"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "http",
  "simple-httptap-decoder",
@@ -1408,7 +1408,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decoder-http2"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "loona-hpack",
  "simple-httptap-decoder",
@@ -1417,7 +1417,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decoder-http3"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "loona-hpack",
  "simple-httptap-decoder",
@@ -1426,7 +1426,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decrypter"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-keylog",
@@ -1434,7 +1434,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decrypter-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-decrypter",
@@ -1443,7 +1443,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decrypter-quic"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "quinn",
  "rcgen",
@@ -1460,7 +1460,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-decrypter-tls"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "aes",
  "rcgen",
@@ -1476,11 +1476,11 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-keylog"
-version = "0.0.3"
+version = "0.1.0"
 
 [[package]]
 name = "simple-httptap-keylog-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-keylog",
  "tempfile",
@@ -1488,7 +1488,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-keylog-file"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-keylog",
  "simple-httptap-keylog-conformance",
@@ -1496,7 +1496,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-authority",
  "simple-httptap-keylog",
@@ -1505,7 +1505,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-authority",
  "simple-httptap-keylog",
@@ -1515,7 +1515,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-proxy-tokio"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "directories",
  "futures-util",
@@ -1552,18 +1552,18 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-redirector"
-version = "0.0.3"
+version = "0.1.0"
 
 [[package]]
 name = "simple-httptap-redirector-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-redirector",
 ]
 
 [[package]]
 name = "simple-httptap-redirector-linux"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "libc",
  "simple-httptap-redirector",
@@ -1574,7 +1574,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-redirector-macos"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "libc",
  "simple-httptap-redirector",
@@ -1583,7 +1583,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-redirector-windows"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-redirector",
  "simple-httptap-redirector-conformance",
@@ -1594,14 +1594,14 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-sink"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-decoder",
 ]
 
 [[package]]
 name = "simple-httptap-sink-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-sink",
@@ -1609,7 +1609,7 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-sink-ndjson"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "base64 0.23.1",
  "serde",
@@ -1621,18 +1621,18 @@ dependencies = [
 
 [[package]]
 name = "simple-httptap-trust"
-version = "0.0.3"
+version = "0.1.0"
 
 [[package]]
 name = "simple-httptap-trust-conformance"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "simple-httptap-trust",
 ]
 
 [[package]]
 name = "simple-httptap-trust-system"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "os-truststore",
  "pem 4.0.0",

@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-redirector-windows"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 
 [lib]
@@ -11,7 +11,7 @@ name = "conformance"
 path = "conformance_run.rs"
 
 [dependencies]
-simple-httptap-redirector = { version = "0.0.3", path = "../.." }
+simple-httptap-redirector = { version = "0.1.0", path = "../.." }
 smoltcp = { version = "0.13.1", default-features = false, features = ["std", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp"] }
 tokio = { version = "1.54.1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros"] }
 

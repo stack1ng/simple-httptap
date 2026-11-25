@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-trust-system"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -16,7 +16,7 @@ workspace = true
 
 [dependencies]
 pem = "4.0.0"
-simple-httptap-trust = { version = "0.0.3", path = "../.." }
+simple-httptap-trust = { version = "0.1.0", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-trust-conformance = { path = "../../conformance" }

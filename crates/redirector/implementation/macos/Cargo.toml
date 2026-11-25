@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-redirector-macos"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 
 build = "build.rs"
@@ -14,7 +14,7 @@ path = "conformance_run.rs"
 
 [dependencies]
 libc = "0.2"
-simple-httptap-redirector = { version = "0.0.3", path = "../.." }
+simple-httptap-redirector = { version = "0.1.0", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-redirector-conformance = { path = "../../conformance" }

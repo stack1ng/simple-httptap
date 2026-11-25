@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-keylog-conformance"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -9,7 +9,7 @@ path = "suite.rs"
 
 [dependencies]
 tempfile = "3.27.0"
-simple-httptap-keylog = { version = "0.0.3", path = ".." }
+simple-httptap-keylog = { version = "0.1.0", path = ".." }
 
 [lints]
 workspace = true

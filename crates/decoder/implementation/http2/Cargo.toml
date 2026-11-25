@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-decoder-http2"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -16,7 +16,7 @@ workspace = true
 
 [dependencies]
 loona-hpack = "0.4.3"
-simple-httptap-decoder = { version = "0.0.3", path = "../.." }
+simple-httptap-decoder = { version = "0.1.0", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-decoder-conformance = { path = "../../conformance" }
