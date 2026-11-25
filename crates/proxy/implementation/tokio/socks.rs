@@ -44,7 +44,7 @@ const AUTHENTICATED: u8 = 0x00;
 /// The reserved byte in requests, replies and UDP headers.
 ///
 /// https://www.rfc-editor.org/rfc/rfc1928#section-4
-const RESERVED: u8 = 0x00;
+const RESERVED_BYTE: u8 = 0x00;
 /// The address type saying four octets of IPv4 address follow.
 ///
 /// https://www.rfc-editor.org/rfc/rfc1928#section-5
@@ -290,7 +290,7 @@ pub(crate) async fn accept<S: AsyncRead + AsyncWrite + Unpin>(stream: &mut S) ->
 
 /// Writes a reply with its status and the address the proxy bound for the request.
 pub(crate) async fn reply<S: AsyncWrite + Unpin>(stream: &mut S, status: Status, bound: SocketAddr) -> std::io::Result<()> {
-    let mut message = vec![SOCKS_VERSION, status.code(), RESERVED];
+    let mut message = vec![SOCKS_VERSION, status.code(), RESERVED_BYTE];
     Address::Ip(bound).encode(&mut message);
     stream.write_all(&message).await?;
     stream.flush().await
@@ -306,7 +306,7 @@ fn expect_version(version: u8) -> std::io::Result<()> {
 
 /// Returns a UDP datagram for a relay: the header with the address, then the payload.
 pub(crate) fn wrap_datagram(address: &Address, payload: &[u8]) -> Vec<u8> {
-    let mut datagram = vec![RESERVED, RESERVED, WHOLE_DATAGRAM];
+    let mut datagram = vec![RESERVED_BYTE, RESERVED_BYTE, WHOLE_DATAGRAM];
     address.encode(&mut datagram);
     datagram.extend_from_slice(payload);
     datagram
@@ -315,7 +315,7 @@ pub(crate) fn wrap_datagram(address: &Address, payload: &[u8]) -> Vec<u8> {
 /// Returns the address and payload of a relayed UDP datagram, or none if it is malformed or a fragment.
 pub(crate) fn unwrap_datagram(datagram: &[u8]) -> Option<(Address, &[u8])> {
     let header = datagram.get(..UDP_HEADER_START)?;
-    if header != [RESERVED, RESERVED, WHOLE_DATAGRAM] {
+    if header != [RESERVED_BYTE, RESERVED_BYTE, WHOLE_DATAGRAM] {
         return None;
     }
     let (address, size) = Address::parse(&datagram[UDP_HEADER_START..])?;
@@ -351,7 +351,7 @@ async fn request_upstream(stream: &mut TcpStream, upstream: &Upstream, command: 
             return Err(invalid(&format!("the upstream proxy chose method {method}, which this proxy cannot speak")));
         }
     }
-    let mut request = vec![SOCKS_VERSION, command.code(), RESERVED];
+    let mut request = vec![SOCKS_VERSION, command.code(), RESERVED_BYTE];
     address.encode(&mut request);
     stream.write_all(&request).await?;
     expect_version(stream.read_u8().await?)?;

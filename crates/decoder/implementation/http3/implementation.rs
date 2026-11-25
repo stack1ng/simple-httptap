@@ -28,7 +28,7 @@ pub struct Http3Connection(Reader);
 
 impl ConnectionDecoder for Http3Connection {
     fn decode(&mut self, direction: Direction, bytes: &[u8]) -> Vec<Decoded> {
-        unparsed(direction, bytes).into_iter().collect()
+        wrap_unparsed(direction, bytes).into_iter().collect()
     }
 
     fn decode_stream(
@@ -54,11 +54,11 @@ const SERVER_INITIATED: u64 = 0x1;
 ///
 /// https://www.rfc-editor.org/rfc/rfc9000#section-2.1
 const UNIDIRECTIONAL: u64 = 0x2;
-/// The type of a DATA frame.
+/// The frame type that carries a run of a message's content.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.2.1
 const DATA_FRAME: u64 = 0x0;
-/// The type of a HEADERS frame.
+/// The frame type that carries a QPACK-encoded field section: a message's headers or trailers.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.2.2
 const HEADERS_FRAME: u64 = 0x1;
@@ -70,7 +70,7 @@ const CANCEL_PUSH: u64 = 0x3;
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.2.4
 const SETTINGS: u64 = 0x4;
-/// The type of a PUSH_PROMISE frame.
+/// The frame type by which a server promises a push on a request stream, with the promised request's fields.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.2.5
 const PUSH_PROMISE_FRAME: u64 = 0x5;
@@ -94,11 +94,11 @@ const RESERVED_FIRST: u64 = 0x21;
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.2.8
 const RESERVED_STEP: u64 = 0x1f;
-/// The type of a control stream.
+/// The unidirectional stream type that carries a peer's SETTINGS and other connection-wide frames.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-6.2.1
 const CONTROL_STREAM: u64 = 0x0;
-/// The type of a push stream.
+/// The unidirectional stream type on which a server sends a promised response, after the push ID.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-6.2.2
 const PUSH_STREAM: u64 = 0x1;
@@ -127,19 +127,19 @@ const QPACK_BLOCKED_STREAMS: u64 = 0x7;
 /// https://www.rfc-editor.org/rfc/rfc9110#section-15.2
 const INFORMATIONAL: u8 = b'1';
 
-/// The fault for bytes on a unidirectional stream from the peer that did not open it.
+/// The fault after which a unidirectional stream comes back unparsed, as the peer that did not open it sent on it.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9000#section-2.1
 const WRONG_SENDER: &str = "bytes from the peer that did not open a unidirectional stream";
 /// The fault for a request or push stream that ended without a message's fields.
 const NO_FIELDS: &str = "a stream ended before its fields";
-/// The fault for a stream that ended partway through a frame.
+/// The fault after which a request or push stream's leftover bytes come back unparsed, its last frame cut off.
 const CUT_FRAME: &str = "a stream ended inside a frame";
 /// The fault for a control or QPACK encoder stream that ended, which the connection needs to its end.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-6.2.1
 const CLOSED_CRITICAL: &str = "a critical stream was closed";
-/// The fault for a stream that ended before its type or push ID came whole.
+/// The fault after which a unidirectional stream's leftover bytes come back unparsed, its opening varints cut off.
 const CUT_HEADER: &str = "a stream ended inside its type or push ID";
 /// The fault for a field section that still waited for its dynamic table entries or SETTINGS at the end.
 ///
@@ -157,7 +157,7 @@ struct Reader {
     huffman: Huffman,
 }
 
-/// What one peer sent: its streams, its SETTINGS, and the dynamic table of the field sections it encodes.
+/// The state of one peer's sending: its streams, its SETTINGS, and the dynamic table of the field sections it encodes.
 #[derive(Debug, Default)]
 struct Peer {
     /// The SETTINGS from its control stream, once they came.
@@ -194,7 +194,7 @@ struct Half {
     http: Option<bool>,
 }
 
-/// What a side of a stream is read as.
+/// The kind of content a side of a stream is read as, which its first bytes decide.
 #[derive(Debug)]
 enum Role {
     /// A unidirectional stream whose type has not come whole.
@@ -233,7 +233,7 @@ struct Messages {
     blocked: bool,
 }
 
-/// What reading the front of a side came to.
+/// The outcome of reading the front of a side, which says whether to read on.
 enum Step {
     /// It read something, and may read more.
     Next,
@@ -353,7 +353,7 @@ impl Reader {
         loop {
             let step = match half.role {
                 Role::Unparsed => {
-                    decoded.extend(unparsed(direction, &mem::take(&mut half.buffer)));
+                    decoded.extend(wrap_unparsed(direction, &mem::take(&mut half.buffer)));
                     return woken;
                 }
                 Role::Ignored => {
@@ -396,7 +396,7 @@ impl Reader {
             }
         }
         if half.fin {
-            half.end(direction, decoded);
+            half.read_end(direction, decoded);
         }
         woken
     }
@@ -491,7 +491,7 @@ impl Reader {
         {
             return Err(format!("a frame of type {kind} on the control stream"));
         }
-        let Some(frame) = frame(&half.buffer) else {
+        let Some(frame) = parse_frame(&half.buffer) else {
             return Ok(Step::Wait);
         };
         if kind != SETTINGS {
@@ -556,7 +556,7 @@ impl Reader {
                 "a frame of type {kind} where stream {stream} may not have one"
             ));
         }
-        let Some(frame) = frame(&half.buffer) else {
+        let Some(frame) = parse_frame(&half.buffer) else {
             return Ok(Step::Wait);
         };
         match kind {
@@ -692,12 +692,12 @@ impl Half {
             decoded.extend(messages.message.take().map(Decoded::Message));
         }
         decoded.push(Decoded::Fault { direction, detail });
-        decoded.extend(unparsed(direction, &mem::take(&mut self.buffer)));
+        decoded.extend(wrap_unparsed(direction, &mem::take(&mut self.buffer)));
         self.role = Role::Unparsed;
     }
 
     /// Reads the end of the side once every whole frame before it is read.
-    fn end(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) {
+    fn read_end(&mut self, direction: Direction, decoded: &mut Vec<Decoded>) {
         match &mut self.role {
             Role::Messages(messages) if messages.blocked => {}
             Role::Messages(messages) if self.buffer.is_empty() => {
@@ -733,7 +733,7 @@ impl Half {
                 decoded.push(Decoded::Fault { direction, detail });
             }
         }
-        decoded.extend(unparsed(direction, &self.buffer));
+        decoded.extend(wrap_unparsed(direction, &self.buffer));
     }
 }
 
@@ -797,7 +797,7 @@ fn frame_type(bytes: &[u8]) -> Option<u64> {
 /// Returns the frame at the front of the bytes, once it came whole.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-7.1
-fn frame(bytes: &[u8]) -> Option<Frame> {
+fn parse_frame(bytes: &[u8]) -> Option<Frame> {
     let mut cursor = Cursor::new(bytes);
     cursor.varint().ok()?;
     let length = cursor.varint().ok()?;
@@ -854,7 +854,7 @@ fn is_informational(fields: &[Field]) -> bool {
 }
 
 /// Returns the bytes as unparsed from the side, unless there are none.
-fn unparsed(direction: Direction, bytes: &[u8]) -> Option<Decoded> {
+fn wrap_unparsed(direction: Direction, bytes: &[u8]) -> Option<Decoded> {
     (!bytes.is_empty()).then(|| Decoded::Unparsed {
         direction,
         bytes: bytes.to_vec(),

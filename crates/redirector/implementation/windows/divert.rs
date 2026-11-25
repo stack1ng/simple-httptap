@@ -109,12 +109,12 @@ const ADDRESS_SIZE: usize = 80;
 const _: () =
     assert!(size_of::<Address>() == ADDRESS_SIZE && size_of::<SocketData>() <= LAYER_DATA);
 
-/// A function as `GetProcAddress` finds it.
+/// An untyped function pointer from `GetProcAddress`, before its cast.
 type Symbol = unsafe extern "system" fn() -> isize;
 /// WinDivertOpen: a handle for a filter on a layer.
 type Open =
     unsafe extern "C" fn(filter: *const u8, layer: u32, priority: i16, flags: u64) -> HANDLE;
-/// WinDivertRecv: waits for a packet or event.
+/// The signature of WinDivertRecv, a blocking receive of a packet or event.
 type Receive = unsafe extern "C" fn(
     handle: HANDLE,
     packet: *mut c_void,
@@ -122,7 +122,7 @@ type Receive = unsafe extern "C" fn(
     received: *mut u32,
     address: *mut Address,
 ) -> BOOL;
-/// WinDivertSend: injects a packet.
+/// The signature of WinDivertSend, the injection of one packet.
 type Inject = unsafe extern "C" fn(
     handle: HANDLE,
     packet: *const c_void,
@@ -130,12 +130,12 @@ type Inject = unsafe extern "C" fn(
     sent: *mut u32,
     address: *const Address,
 ) -> BOOL;
-/// WinDivertShutdown: stops receiving, sending or both.
+/// The signature of WinDivertShutdown, an end to receiving, sending or both.
 type Shutdown = unsafe extern "C" fn(handle: HANDLE, how: u32) -> BOOL;
-/// WinDivertClose: closes a handle.
+/// The signature of WinDivertClose, the release of a handle.
 type Close = unsafe extern "C" fn(handle: HANDLE) -> BOOL;
 
-/// The functions of WinDivert.dll the redirector calls.
+/// The table of WinDivert.dll function pointers, loaded once per process.
 #[derive(Debug)]
 pub(crate) struct Library {
     open: Open,
@@ -157,7 +157,7 @@ unsafe impl Send for Handle {}
 // SAFETY: as above.
 unsafe impl Sync for Handle {}
 
-/// WINDIVERT_ADDRESS: when and how a packet or event was captured, and its layer's data.
+/// The WINDIVERT_ADDRESS of a captured packet or event: timestamp, flags and layer data.
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Address {
@@ -168,7 +168,7 @@ pub(crate) struct Address {
     data: [u64; LAYER_DATA / size_of::<u64>()],
 }
 
-/// WINDIVERT_DATA_SOCKET: the process and the 5-tuple of a socket operation.
+/// The WINDIVERT_DATA_SOCKET of a socket event: its process ID and 5-tuple.
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct SocketData {
@@ -348,7 +348,7 @@ impl Handle {
     }
 
     /// Stops the handle, so a receive that waits on it returns an error.
-    pub(crate) fn shutdown(&self) {
+    pub(crate) fn shut_down(&self) {
         // SAFETY: the handle is open until dropped.
         unsafe { (self.library.shutdown)(self.raw, SHUTDOWN_BOTH) };
     }

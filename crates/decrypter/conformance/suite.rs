@@ -44,7 +44,7 @@ pub fn decrypts_nothing_from_no_bytes<T: Decrypter>(decrypter: T) {
     let keys = NoKeys;
     let mut connection = decrypter.start_connection();
     assert!(connection.retry(&keys).is_empty());
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
     let mut decrypted = connection.give_up();
     decrypted.extend(connection.finish());
     assert!(decrypted.iter().all(|each| matches!(each, Decrypted::Agreed { .. })), "{decrypted:?}");
@@ -68,7 +68,7 @@ pub fn finishes_once<T: Decrypter>(decrypter: T) {
     connection.decrypt(Direction::Server, NOT_ENCRYPTED, &keys);
     connection.finish();
     assert!(connection.finish().is_empty());
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
 }
 
 /// Runs each suite function above as its own test on a value made anew for every test.

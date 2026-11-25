@@ -54,7 +54,7 @@ const CHANNEL_DEPTH: usize = 16;
 /// https://www.rfc-editor.org/rfc/rfc768
 const DATAGRAM_MAX: usize = u16::MAX as usize;
 
-/// What a relay hands the stack for the program.
+/// A relay's message to the stack for the program: destination bytes, their end, or a reset.
 #[derive(Debug)]
 enum Downstream {
     /// Bytes the destination sent.
@@ -103,7 +103,7 @@ struct Stack {
     wake: Arc<Notify>,
 }
 
-/// One TCP connection the stack ended, and the channels to its relay.
+/// The stack's state for one TCP connection it terminated: its socket, endpoints and relay channels.
 struct Connection {
     socket: SocketHandle,
     /// The program's address and the destination's.
@@ -402,10 +402,10 @@ struct Device {
     replies: mpsc::UnboundedSender<Vec<u8>>,
 }
 
-/// A packet smoltcp takes from the device.
+/// The receive token for one diverted packet, handed to smoltcp from the device's queue.
 struct Received(Vec<u8>);
 
-/// Room for one packet smoltcp sends, which goes to the replies.
+/// The transmit token for one packet from smoltcp, forwarded to the replies channel.
 struct Reply<'a>(&'a mpsc::UnboundedSender<Vec<u8>>);
 
 impl phy::Device for Device {
@@ -560,7 +560,7 @@ mod tests {
         );
     }
 
-    /// Checks that a connection the proxy refuses is reset.
+    /// Checks that the program's side sees no data and a closed socket once the proxy refuses the CONNECT.
     #[tokio::test]
     async fn resets_a_connection_the_proxy_refuses() {
         let (received, state) = exchange(true, b"ping", false).await;

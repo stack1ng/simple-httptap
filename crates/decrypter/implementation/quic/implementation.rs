@@ -42,8 +42,8 @@ impl ConnectionDecrypter for QuicConnection {
         self.0.retry(keys)
     }
 
-    fn is_waiting(&self) -> bool {
-        self.0.is_waiting()
+    fn awaits_secret(&self) -> bool {
+        self.0.awaits_secret()
     }
 
     fn give_up(&mut self) -> Vec<Decrypted> {
@@ -154,7 +154,7 @@ const SERVER_INITIAL: &str = "server in";
 /// What TLS 1.3 puts before every HKDF label.
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#section-7.1
-const LABEL_PREFIX: &str = "tls13 ";
+const HKDF_LABEL_PREFIX: &str = "tls13 ";
 /// The context of every label QUIC expands, empty, as its one length byte.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9001#section-5.1
@@ -171,18 +171,18 @@ const AES_256_GCM_SHA384: u16 = 0x1302;
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#appendix-B.4
 const CHACHA20_POLY1305_SHA256: u16 = 0x1303;
-/// The type of a ClientHello handshake message.
+/// The handshake type of a ClientHello, which a client sends in Initial packets.
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#appendix-B.3
-const CLIENT_HELLO: u8 = 1;
-/// The type of a ServerHello handshake message.
+const CLIENT_HELLO_TYPE: u8 = 1;
+/// The handshake type of a ServerHello, which a server sends in Initial packets.
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#appendix-B.3
-const SERVER_HELLO: u8 = 2;
-/// The type of an EncryptedExtensions handshake message.
+const SERVER_HELLO_TYPE: u8 = 2;
+/// The handshake type of EncryptedExtensions, which a server sends in Handshake packets.
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#appendix-B.3
-const ENCRYPTED_EXTENSIONS: u8 = 8;
+const ENCRYPTED_EXTENSIONS_TYPE: u8 = 8;
 /// The bytes of a handshake message's length.
 ///
 /// https://www.rfc-editor.org/rfc/rfc8446#section-4
@@ -256,7 +256,9 @@ const STREAM_LENGTH: u64 = 0x02;
 ///
 /// https://www.rfc-editor.org/rfc/rfc9000#section-19.8
 const STREAM_FIN: u64 = 0x01;
-/// The last type of a STREAM frame, with every flag.
+/// The highest STREAM frame type, with the offset, length and FIN flags all set, which ends the STREAM type range.
+///
+/// https://www.rfc-editor.org/rfc/rfc9000#section-19.8
 const STREAM_LAST: u64 = STREAM | STREAM_OFFSET | STREAM_LENGTH | STREAM_FIN;
 /// The type of a NEW_CONNECTION_ID frame.
 ///
@@ -270,7 +272,7 @@ const RESET_TOKEN: usize = 16;
 ///
 /// https://www.rfc-editor.org/rfc/rfc9000#section-19.17
 const PATH_CHALLENGE: u64 = 0x1a;
-/// The type of a PATH_RESPONSE frame.
+/// The frame type that echoes a PATH_CHALLENGE's data back, skipped as its challenge is.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9000#section-19.18
 const PATH_RESPONSE: u64 = 0x1b;
@@ -320,7 +322,7 @@ struct Version {
     types: &'static [LongType],
 }
 
-/// The labels a version expands a secret's key, IV, header protection key and next secret under.
+/// A version's HKDF labels for a secret's key, IV, header protection key and next-generation secret.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Labels {
     key: &'static str,
@@ -406,11 +408,11 @@ impl KeyType for Length {
 /// https://www.rfc-editor.org/rfc/rfc8446#section-7.1
 fn expand(secret: &hkdf::Prk, label: &str, length: usize) -> Option<Vec<u8>> {
     let length_bytes = u16::try_from(length).ok()?.to_be_bytes();
-    let label_length = [u8::try_from(LABEL_PREFIX.len() + label.len()).ok()?];
+    let label_length = [u8::try_from(HKDF_LABEL_PREFIX.len() + label.len()).ok()?];
     let info = [
         &length_bytes[..],
         &label_length,
-        LABEL_PREFIX.as_bytes(),
+        HKDF_LABEL_PREFIX.as_bytes(),
         label.as_bytes(),
         NO_CONTEXT,
     ];
@@ -791,7 +793,7 @@ struct Handshake {
     buffer: Vec<u8>,
 }
 
-/// What one side sent: its keys, how far each space's packet numbers went, its handshake and its streams.
+/// The state of one side's sending: its keys, each space's largest packet number, its handshake and its streams.
 #[derive(Debug, Default)]
 struct Side {
     /// The largest packet number it decrypted in each space.
@@ -819,7 +821,7 @@ struct Held {
     wait: Option<Wait>,
 }
 
-/// What a held datagram waits for.
+/// The cause of a held datagram's wait: a missing secret or something not shown yet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Wait {
     /// A secret the key log lacks, by label.
@@ -828,7 +830,7 @@ enum Wait {
     Later(&'static str),
 }
 
-/// What became of one packet that could not be read now.
+/// The outcome for a packet that cannot be read now: a wait, or a failure that makes it opaque.
 #[derive(Debug)]
 enum Unread {
     Wait(Wait),
@@ -863,7 +865,7 @@ struct Long<'a> {
     end: usize,
 }
 
-/// One frame, as far as it matters here.
+/// A decrypted frame, reduced to the fields that carry plaintext, keys, resets, connection IDs or closes.
 #[derive(Debug)]
 enum Frame<'a> {
     Ignored,
@@ -1063,7 +1065,7 @@ fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
-/// What one flow showed so far: its handshake, each side's keys and streams, and the datagrams it holds.
+/// The state of one flow so far: its handshake, each side's keys and streams, and the datagrams it holds.
 #[derive(Debug, Default)]
 struct Connection {
     /// The version the server last sent a long header in, or else the client.
@@ -1119,7 +1121,7 @@ impl Connection {
     }
 
     /// Returns whether a datagram it holds waits for a secret.
-    fn is_waiting(&self) -> bool {
+    fn awaits_secret(&self) -> bool {
         !self.gave_up
             && self
                 .held
@@ -1443,7 +1445,7 @@ impl Connection {
                 self.open_initial(direction, version, packet, number_at, largest)
             }
             Kind::Handshake => self
-                .handshake_keys(direction, version, keys)?
+                .load_handshake_keys(direction, version, keys)?
                 .open(packet, number_at, largest),
             Kind::ZeroRtt if direction == Direction::Client => self
                 .early_keys(version, keys)?
@@ -1520,7 +1522,7 @@ impl Connection {
     }
 
     /// Returns a side's Handshake keys, making them from the key log the first time.
-    fn handshake_keys(
+    fn load_handshake_keys(
         &mut self,
         direction: Direction,
         version: Version,
@@ -1776,19 +1778,19 @@ impl Connection {
     ) -> Result<(), String> {
         let mut reader = Reader(body);
         match (direction, space, kind) {
-            (Direction::Client, Space::Initial, CLIENT_HELLO) => {
+            (Direction::Client, Space::Initial, CLIENT_HELLO_TYPE) => {
                 reader.u16().ok_or(CUT_HELLO)?;
                 self.client_random = Some(reader.take(RANDOM).ok_or(CUT_HELLO)?.to_vec());
                 self.learned += 1;
             }
-            (Direction::Server, Space::Initial, SERVER_HELLO) => {
+            (Direction::Server, Space::Initial, SERVER_HELLO_TYPE) => {
                 let code = server_hello_suite(&mut reader).ok_or(CUT_HELLO)?;
                 self.suite = Some(suite(code).ok_or_else(|| {
                     format!("the server chose cipher suite 0x{code:04x}, which QUIC does not use")
                 })?);
                 self.learned += 1;
             }
-            (Direction::Server, Space::Handshake, ENCRYPTED_EXTENSIONS) => {
+            (Direction::Server, Space::Handshake, ENCRYPTED_EXTENSIONS_TYPE) => {
                 let protocol =
                     alpn(&mut reader).ok_or("an EncryptedExtensions message cut short")?;
                 self.agree(protocol, out);
@@ -1823,7 +1825,7 @@ impl Connection {
         }
     }
 
-    /// Returns what the side sent, to change.
+    /// Returns the client's or the server's state, whichever sent in the direction, for updating it.
     fn side_mut(&mut self, direction: Direction) -> &mut Side {
         match direction {
             Direction::Client => &mut self.client,

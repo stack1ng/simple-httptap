@@ -139,7 +139,7 @@ fn hex(bytes: &[u8]) -> String {
 /// Returns the bytes hex digits of either case spell, or none if they are no whole bytes of hex.
 fn unhex(text: &str) -> Option<Vec<u8>> {
     let digits: Vec<u8> = text.chars().map(|digit| digit.to_digit(HEX).and_then(|value| u8::try_from(value).ok())).collect::<Option<_>>()?;
-    if digits.len() % DIGITS_PER_BYTE != 0 {
+    if !digits.len().is_multiple_of(DIGITS_PER_BYTE) {
         return None;
     }
     Some(digits.chunks(DIGITS_PER_BYTE).map(|pair| (pair[0] << NIBBLE_BITS) | pair[1]).collect())

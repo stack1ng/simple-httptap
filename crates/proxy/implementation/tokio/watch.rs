@@ -113,7 +113,7 @@ impl Watch {
 
     /// Returns whether the decrypter holds bytes for want of a secret.
     fn awaits_secret(&self) -> bool {
-        matches!(&self.reading, Reading::Encrypted { decrypter, .. } if decrypter.is_waiting())
+        matches!(&self.reading, Reading::Encrypted { decrypter, .. } if decrypter.awaits_secret())
     }
 
     /// Reads bytes one side sent, deciding how to read the connection on its first bytes.

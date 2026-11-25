@@ -173,10 +173,10 @@ impl<S: AsyncRead + Unpin> AsyncRead for Tee<S> {
 impl<S: AsyncWrite + Unpin> AsyncWrite for Tee<S> {
     fn poll_write(mut self: Pin<&mut Self>, context: &mut Context<'_>, bytes: &[u8]) -> Poll<std::io::Result<usize>> {
         let polled = Pin::new(&mut self.inner).poll_write(context, bytes);
-        if let Poll::Ready(Ok(written)) = &polled {
-            if *written != usize::MIN {
-                let _ = self.copies.send((Direction::Client, bytes[..*written].to_vec()));
-            }
+        if let Poll::Ready(Ok(written)) = &polled
+            && *written != usize::MIN
+        {
+            let _ = self.copies.send((Direction::Client, bytes[..*written].to_vec()));
         }
         polled
     }

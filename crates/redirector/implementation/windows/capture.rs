@@ -18,7 +18,7 @@ use crate::table::{Fate, Flow, GRACE, Table};
 
 /// Every TCP and UDP socket operation, of every process; the job decides which matter.
 const SOCKET_FILTER: &std::ffi::CStr = c"tcp || udp";
-/// Outbound TCP and UDP packets that leave the machine for unicast addresses.
+/// The network-layer WinDivert filter, which leaves loopback, multicast and broadcast traffic to pass untouched.
 ///
 /// https://github.com/mitmproxy/mitmproxy_rs/blob/main/mitmproxy-windows/redirector/src/main2.rs
 const NETWORK_FILTER: &std::ffi::CStr = c"outbound && !loopback && ((ip && remoteAddr < 224.0.0.0) || (ipv6 && remoteAddr < ff00::)) && (tcp || udp)";
@@ -56,7 +56,7 @@ pub(crate) struct Running {
     diversion: Diversion,
 }
 
-/// The handles that capture packets and socket events, and the threads that serve them, stopped when dropped.
+/// The socket and network WinDivert handles with their serving threads, all stopped on drop.
 #[derive(Debug)]
 struct Diversion {
     socket: Arc<Handle>,
@@ -107,7 +107,12 @@ pub(crate) fn launch(program: &Program, proxy: SocketAddr) -> std::io::Result<Ru
         read_packets(&network, &packets)
     })?);
     diversion.threads.push(spawn(STACK_THREAD, move || {
-        runtime.block_on(route(proxy, event_receiver, packet_receiver, inject));
+        runtime.block_on(route_packets(
+            proxy,
+            event_receiver,
+            packet_receiver,
+            inject,
+        ));
         runtime.shutdown_background();
     })?);
     let child = job.start(program)?;
@@ -131,15 +136,15 @@ impl Running {
 impl Drop for Diversion {
     /// Shuts the capturing handles, which ends the threads, and waits for them.
     fn drop(&mut self) {
-        self.socket.shutdown();
-        self.network.shutdown();
+        self.socket.shut_down();
+        self.network.shut_down();
         for thread in self.threads.drain(..) {
             let _ = thread.join();
         }
     }
 }
 
-/// Starts a named thread.
+/// Starts a thread under a name that panics and debuggers show, running the work.
 fn spawn(name: &str, work: impl FnOnce() + Send + 'static) -> std::io::Result<JoinHandle<()>> {
     std::thread::Builder::new()
         .name(name.to_owned())
@@ -181,7 +186,7 @@ fn read_packets(network: &Handle, packets: &mpsc::Sender<(Vec<u8>, Address)>) {
 /// Sorts each captured packet by its flow's fate: diverted ones go to the stack, the rest are injected again unchanged.
 ///
 /// The stack's packets for the program are injected too. Ends when the packet handle shuts.
-async fn route(
+async fn route_packets(
     proxy: SocketAddr,
     mut events: mpsc::Receiver<(Flow, Fate)>,
     mut packets: mpsc::Receiver<(Vec<u8>, Address)>,

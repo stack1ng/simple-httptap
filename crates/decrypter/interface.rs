@@ -18,8 +18,8 @@ pub trait ConnectionDecrypter: Send + 'static {
     /// Returns held bytes the key log now decrypts.
     fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted>;
 
-    /// Returns whether bytes await a secret.
-    fn is_waiting(&self) -> bool;
+    /// Returns whether `retry` may give more.
+    fn awaits_secret(&self) -> bool;
 
     /// Stops waiting: held and later secret-needing bytes come back opaque.
     fn give_up(&mut self) -> Vec<Decrypted>;

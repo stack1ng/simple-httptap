@@ -439,7 +439,7 @@ fn static_field(index: u64) -> Result<Field, Error> {
     })
 }
 
-/// What decoding a field section came to.
+/// The outcome of decoding a field section: its fields, or a wait for entries or SETTINGS.
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Section {
     /// The fields, in the order sent.
@@ -470,7 +470,7 @@ pub(crate) fn decode_section(
         (Some(count), _) => count,
         (None, _) if encoded == u64::MIN => u64::MIN,
         (None, None) => return Ok(Section::Blocked),
-        (None, Some(allowed)) => *required.insert(required_insert_count(
+        (None, Some(allowed)) => *required.insert(decode_required_insert_count(
             encoded,
             allowed / ENTRY_OVERHEAD,
             table.inserted,
@@ -498,7 +498,11 @@ pub(crate) fn decode_section(
 /// Returns the Required Insert Count an encoded one stands for, given the inserts seen so far.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9204#section-4.5.1.1
-fn required_insert_count(encoded: u64, max_entries: u64, inserted: u64) -> Result<u64, String> {
+fn decode_required_insert_count(
+    encoded: u64,
+    max_entries: u64,
+    inserted: u64,
+) -> Result<u64, String> {
     let full_range = max_entries * 2;
     if encoded > full_range {
         return Err(format!(
@@ -778,10 +782,10 @@ mod tests {
 
     #[test]
     fn wraps_the_required_insert_count() {
-        assert_eq!(required_insert_count(9, 6, 20), Ok(20));
-        assert_eq!(required_insert_count(10, 6, 20), Ok(21));
-        assert_eq!(required_insert_count(3, 6, 2), Ok(2));
-        assert!(required_insert_count(13, 6, 20).is_err());
+        assert_eq!(decode_required_insert_count(9, 6, 20), Ok(20));
+        assert_eq!(decode_required_insert_count(10, 6, 20), Ok(21));
+        assert_eq!(decode_required_insert_count(3, 6, 2), Ok(2));
+        assert!(decode_required_insert_count(13, 6, 20).is_err());
     }
 
     #[test]

@@ -425,7 +425,7 @@ impl Step {
             .map_or_else(Default::default, |(_, description)| *description)
     }
 
-    /// Returns the step with the code, if one has it.
+    /// Returns the step a child's failure report names by code, if any.
     fn from_code(code: u8) -> Option<Self> {
         STEPS
             .iter()
@@ -438,7 +438,7 @@ impl Step {
 const USER_NAMESPACE_FIX: &str = "this system lets no unprivileged process make a user namespace. Run httptap with sudo, or allow \
      them: on Ubuntu `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0`, elsewhere `sudo sysctl \
      kernel.unprivileged_userns_clone=1` or a nonzero user.max_user_namespaces; a container also needs its seccomp profile lifted";
-/// Advice where /dev/net/tun is missing: load the module, or pass the device in.
+/// The advice for ENOENT, ENODEV or ENXIO on making the TUN device: /dev/net/tun is absent.
 const TUN_FIX: &str = "this system has no TUN device. Load the module with `sudo modprobe tun`; a container needs `--device` with it";
 /// Advice where AppArmor strips user namespaces of capabilities: sudo, or the rule off.
 const APPARMOR_FIX: &str = "AppArmor takes every privilege from an unprivileged user namespace here, as Ubuntu 24.04 does. Run \

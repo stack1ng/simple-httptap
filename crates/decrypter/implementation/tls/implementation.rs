@@ -46,8 +46,8 @@ impl ConnectionDecrypter for TlsConnection {
         self.0.retry(keys)
     }
 
-    fn is_waiting(&self) -> bool {
-        self.0.is_waiting()
+    fn awaits_secret(&self) -> bool {
+        self.0.awaits_secret()
     }
 
     fn give_up(&mut self) -> Vec<Decrypted> {
@@ -89,7 +89,7 @@ impl Reader {
     }
 
     /// Returns whether either side holds records for want of a secret, not of the other side's hello.
-    fn is_waiting(&self) -> bool {
+    fn awaits_secret(&self) -> bool {
         [&self.client, &self.server]
             .iter()
             .any(|side| side.want.as_ref().is_some_and(|want| want.secret))
@@ -490,7 +490,7 @@ const TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256: u16 = 0xC027;
 /// https://www.rfc-editor.org/rfc/rfc5289#section-3.1
 const TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384: u16 = 0xC028;
 
-/// What both sides' reading shares: the hellos, whether the protocol was told, and what came out, in order.
+/// The hellos, the agreement and the ordered output that the reading of both sides shares.
 #[derive(Debug, Default)]
 struct Shared {
     client_hello: Option<ClientHello>,
@@ -526,9 +526,9 @@ impl Shared {
     }
 
     /// Returns the server's latest hello, or what to do while it has not come.
-    fn server_hello(&self, peer_gone: bool) -> Result<&ServerHello, Stop> {
+    fn require_server_hello(&self, peer_gone: bool) -> Result<&ServerHello, Stop> {
         self.server_hello.as_ref().ok_or_else(|| {
-            missing(
+            stop_for_missing_hello(
                 peer_gone,
                 &format!("the {SERVER_NAME}'s {SERVER_HELLO_NAME}"),
             )
@@ -538,7 +538,7 @@ impl Shared {
     /// Returns the client's random, or what to do while its ClientHello has not come.
     fn client_random(&self, peer_gone: bool) -> Result<&[u8], Stop> {
         let hello = self.client_hello.as_ref().ok_or_else(|| {
-            missing(
+            stop_for_missing_hello(
                 peer_gone,
                 &format!("the {CLIENT_NAME}'s {CLIENT_HELLO_NAME}"),
             )
@@ -547,7 +547,7 @@ impl Shared {
     }
 }
 
-/// What a ClientHello tells the decrypter.
+/// The parts of a ClientHello the decrypter keeps: its random and whether it offered 0-RTT data.
 #[derive(Debug)]
 struct ClientHello {
     random: Vec<u8>,
@@ -569,7 +569,7 @@ struct ServerHello {
     protocol: Option<Vec<u8>>,
 }
 
-/// Why a side cannot read its next record now.
+/// The reason a side cannot read its next record now: a wait, or a failure that makes the rest opaque.
 enum Stop {
     /// It waits for what is missing.
     Hold(Want),
@@ -577,7 +577,7 @@ enum Stop {
     Fail(String),
 }
 
-/// What a side waits for before it can read its next record.
+/// The missing hello or secret that holds back a side's next record.
 #[derive(Debug)]
 struct Want {
     detail: String,
@@ -586,7 +586,7 @@ struct Want {
 }
 
 /// Returns how to wait for the other side's hello, or how to fail once that side can never send it.
-fn missing(peer_gone: bool, what: &str) -> Stop {
+fn stop_for_missing_hello(peer_gone: bool, what: &str) -> Stop {
     let detail = format!("{what} never came");
     if peer_gone {
         Stop::Fail(detail)
@@ -665,7 +665,7 @@ struct Side {
     want: Option<Want>,
 }
 
-/// How a side's next records are protected.
+/// The protection state of a side's next records: clear, under a TLS 1.3 traffic secret, or under TLS 1.2 keys.
 #[derive(Debug)]
 enum Stage {
     /// In the clear: before a TLS 1.2 ChangeCipherSpec, or before a TLS 1.3 ServerHello.
@@ -680,7 +680,7 @@ enum Stage {
     Tls12(Cipher12),
 }
 
-/// What a whole or partial record at the start of a side's unread bytes is.
+/// The classification of a side's unread bytes: a partial record, no record at all, or a whole record's length.
 enum Frame {
     /// Not all of the record has come.
     Partial,
@@ -691,7 +691,7 @@ enum Frame {
 }
 
 /// Returns what the bytes start with; the first record of a side must be a handshake or an alert.
-fn frame(bytes: &[u8], started: bool) -> Frame {
+fn classify_frame(bytes: &[u8], started: bool) -> Frame {
     let Some(&kind) = bytes.first() else {
         return Frame::Partial;
     };
@@ -770,7 +770,7 @@ impl Side {
             return self.flush(shared);
         }
         let unread = &self.buffer[self.read..];
-        let length = match frame(unread, self.started) {
+        let length = match classify_frame(unread, self.started) {
             Frame::Partial => return false,
             Frame::Foreign => {
                 self.fail(
@@ -867,7 +867,7 @@ impl Side {
 
     /// Reads a ChangeCipherSpec: TLS 1.2 starts encrypting after it, TLS 1.3 sends it only for middleboxes.
     fn change_cipher_spec(&mut self, shared: &Shared, peer_gone: bool) -> Result<(), Stop> {
-        let hello = shared.server_hello(peer_gone)?;
+        let hello = shared.require_server_hello(peer_gone)?;
         match hello.version {
             TLS13 => Ok(()),
             TLS12 => {
@@ -898,7 +898,7 @@ impl Side {
         keys: &dyn Keys,
         peer_gone: bool,
     ) -> Result<(u8, Vec<u8>), Stop> {
-        let hello = shared.server_hello(peer_gone)?;
+        let hello = shared.require_server_hello(peer_gone)?;
         if hello.version != TLS13 {
             return Err(Stop::Fail(format!(
                 "the {} sent application data before ChangeCipherSpec",
@@ -920,7 +920,7 @@ impl Side {
                     Stage::Early(Traffic::new(CLIENT_EARLY_TRAFFIC_SECRET))
                 }
                 Direction::Client if hello.retry => {
-                    return Err(missing(
+                    return Err(stop_for_missing_hello(
                         peer_gone,
                         &format!("the {SERVER_HELLO_NAME} after the HelloRetryRequest"),
                     ));
@@ -1205,7 +1205,7 @@ fn suite13(id: u16) -> Option<Suite13> {
     }
 }
 
-/// One side's TLS 1.3 records under one traffic secret and those KeyUpdates derive from it.
+/// The reading state of one side's TLS 1.3 records under one traffic secret and its KeyUpdate successors.
 #[derive(Debug)]
 struct Traffic {
     /// The key log label of the secret it starts from.
@@ -1342,7 +1342,7 @@ fn inner(mut plaintext: Vec<u8>) -> Result<(u8, Vec<u8>), Stop> {
     Ok((kind, plaintext))
 }
 
-/// An AEAD key and the IV each record's nonce is the sequence number XORed into.
+/// An AEAD key and its IV, the base of each record's nonce once XORed with the sequence number.
 #[derive(Debug)]
 struct RecordKey {
     key: aead::LessSafeKey,
@@ -1450,7 +1450,7 @@ struct Suite12 {
     bulk: Bulk,
 }
 
-/// How a TLS 1.2 suite protects records.
+/// The record protection of a TLS 1.2 suite: AES-GCM, ChaCha20-Poly1305, or AES-CBC with an HMAC.
 #[derive(Debug, Clone, Copy)]
 enum Bulk {
     /// AES-GCM with an implicit salt and an explicit nonce in each record.
@@ -1971,7 +1971,7 @@ mod tests {
     }
 
     impl Transcript {
-        /// Returns every byte the side sent.
+        /// Returns the side's flights joined in the order sent, as one byte string.
         fn sent(&self, side: Direction) -> Vec<u8> {
             self.flights
                 .iter()
@@ -2256,7 +2256,7 @@ mod tests {
             let mut connection = Tls.start_connection();
             let mut decrypted = feed(&mut connection, &transcript.flights, &keys, order, seed);
             assert!(
-                !connection.is_waiting(),
+                !connection.awaits_secret(),
                 "{order:?}: {:?}",
                 summary(&decrypted)
             );
@@ -2269,7 +2269,7 @@ mod tests {
     /// Checks the bytes are whole records, none of them encrypted TLS 1.3 records.
     fn assert_clear_records(mut bytes: &[u8]) {
         while !bytes.is_empty() {
-            let Frame::Whole(length) = frame(bytes, true) else {
+            let Frame::Whole(length) = classify_frame(bytes, true) else {
                 panic!("not whole records")
             };
             assert_ne!(bytes[0], APPLICATION_DATA);
@@ -2378,7 +2378,7 @@ mod tests {
         let resumed = converse(&pair, None, false);
         let (direction, server_first) = &resumed.flights[1];
         assert_eq!(*direction, Direction::Server);
-        let Frame::Whole(server_hello) = frame(server_first, false) else {
+        let Frame::Whole(server_hello) = classify_frame(server_first, false) else {
             panic!("no first record")
         };
         assert_eq!(
@@ -2435,7 +2435,7 @@ mod tests {
                 Order::AsSent,
                 5,
             );
-            assert!(connection.is_waiting());
+            assert!(connection.awaits_secret());
             assert!(
                 decrypted
                     .iter()
@@ -2446,7 +2446,7 @@ mod tests {
             assert!(connection.retry(&keys).is_empty());
             pair.logged.write_to(&keys);
             decrypted.extend(connection.retry(&keys));
-            assert!(!connection.is_waiting());
+            assert!(!connection.awaits_secret());
             decrypted.extend(connection.finish());
             assert_decrypted(&decrypted, &transcript, Some(H2));
         }
@@ -2465,10 +2465,10 @@ mod tests {
         let mut connection = Tls.start_connection();
         let (before, after) = transcript.flights.split_at(2);
         let mut decrypted = feed(&mut connection, before, &keys, Order::AsSent, 6);
-        assert!(connection.is_waiting());
+        assert!(connection.awaits_secret());
         assert!(decrypted.is_empty(), "{:?}", summary(&decrypted));
         decrypted.extend(connection.give_up());
-        assert!(!connection.is_waiting());
+        assert!(!connection.awaits_secret());
         let random = hex(&pair.logged.last_client_random());
         let fault = decrypted.iter().find_map(|each| match each {
             Decrypted::Fault { detail, .. } => Some(detail.clone()),
@@ -2569,7 +2569,7 @@ mod tests {
         assert!(plain(&decrypted, Direction::Client) == transcript.client_wrote);
     }
 
-    /// The TLS 1.2 handshake and records of a made-up connection, under a CBC suite this test seals itself.
+    /// A made-up TLS 1.2 connection: its flights, client random, master secret and plaintexts, under a test-sealed CBC suite.
     struct Made {
         flights: Vec<(Direction, Vec<u8>)>,
         client_random: [u8; RANDOM_SIZE],

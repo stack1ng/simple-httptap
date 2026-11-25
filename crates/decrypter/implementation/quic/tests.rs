@@ -21,7 +21,7 @@ const SAMPLE_SECRET: &str = "9ac312a7f877468ebe69422748ad00a15443f18203a07d6060f
 const PROTOCOL: &[u8] = b"httptap-test";
 /// The name of the key log file the quinn client writes, in each session's temporary folder.
 const KEYLOG_NAME: &str = "sslkeylogfile.txt";
-/// What the client sends on its unidirectional stream.
+/// The payload the client writes on its unidirectional stream, which the decrypted stream must match.
 const CLIENT_UNI: &[u8] = b"the client's unidirectional stream";
 /// What the client sends in a DATAGRAM frame.
 const CLIENT_DATAGRAM: &[u8] = b"the client's datagram";
@@ -288,7 +288,7 @@ fn learns_the_handshake_from_the_sample_initials_of_both_versions() {
             connection.0.suite.map(|suite| suite.aead),
             Some(&aead::AES_128_GCM)
         );
-        assert!(!connection.is_waiting());
+        assert!(!connection.awaits_secret());
         assert_eq!(connection.finish(), [Decrypted::Agreed { protocol: None }]);
     }
 }
@@ -347,7 +347,7 @@ fn gives_back_what_is_no_quic_it_decrypts() {
             bytes: dns
         }]
     );
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
 }
 
 #[test]
@@ -377,7 +377,7 @@ impl rustls::KeyLog for Logger {
     }
 }
 
-/// How a quinn session goes.
+/// The settings of a quinn session: the client's preferred suite and whether the server sends a Retry.
 #[derive(Clone, Copy)]
 struct Options {
     /// The cipher suite the client prefers, which the server then chooses.
@@ -674,7 +674,7 @@ async fn serve(server: quinn::Endpoint, retry: bool) {
     server.wait_idle().await;
 }
 
-/// The datagrams a relay recorded, shared with its task.
+/// A list of datagrams a relay recorded, shared between the relay task and the test.
 type Recorded = Arc<Mutex<Vec<(Direction, Vec<u8>)>>>;
 
 /// Starts a relay between the client and the server that records every datagram, returning its address and task.
@@ -713,7 +713,7 @@ async fn relay(
     (address, task)
 }
 
-/// What a connection decrypter gave back, put together.
+/// The collected output of a connection decrypter: streams, datagrams, agreements, opaque bytes and faults.
 #[derive(Debug, Default)]
 struct Gathered {
     /// Each stream's bytes and whether it ended, by whether the client sent them and the stream.
@@ -821,7 +821,7 @@ fn decrypt_all(
     for (direction, bytes) in datagrams {
         gathered.add(connection.decrypt(*direction, bytes, &keys));
     }
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
     gathered.add(connection.finish());
     (connection, gathered)
 }
@@ -931,7 +931,7 @@ fn decrypt_without_secrets(
     for (direction, bytes) in &session.datagrams {
         gathered.add(connection.decrypt(*direction, bytes, &keys));
     }
-    assert!(connection.is_waiting());
+    assert!(connection.awaits_secret());
     assert!(
         gathered.streams.is_empty() && gathered.opaque.is_empty() && gathered.faults.is_empty(),
         "{gathered:?}"
@@ -954,7 +954,7 @@ fn decrypts_what_it_held_once_the_secrets_come() {
     let (folder, keys, mut connection, mut gathered) = decrypt_without_secrets(session);
     write_late(session, &folder.path().join(KEYLOG_NAME));
     gathered.add(connection.retry(&keys));
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
     gathered.add(connection.finish());
     gathered.check_whole(0);
 }
@@ -969,7 +969,7 @@ fn gives_back_what_it_held_opaque_when_it_gives_up() {
     let session = plain_session();
     let (_folder, keys, mut connection, mut gathered) = decrypt_without_secrets(session);
     gathered.add(connection.give_up());
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
     assert_eq!(gathered.agreed, [None]);
     let [client, server] = gathered.faults.as_slice() else {
         panic!("a fault for each side: {:?}", gathered.faults)
@@ -1027,7 +1027,7 @@ fn gives_back_what_it_held_opaque_when_the_connection_finishes() {
     let session = plain_session();
     let (_folder, keys, mut connection, mut gathered) = decrypt_without_secrets(session);
     gathered.add(connection.finish());
-    assert!(!connection.is_waiting());
+    assert!(!connection.awaits_secret());
     assert_eq!(gathered.agreed, [None]);
     assert!(
         gathered

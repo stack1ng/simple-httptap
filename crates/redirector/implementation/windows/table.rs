@@ -32,7 +32,7 @@ pub(crate) struct Flow {
     remote_port: u16,
 }
 
-/// What becomes of a flow's packets.
+/// The decision for a flow's packets: passed on unchanged, or diverted to the userspace stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Fate {
     /// The packets go on unchanged.
@@ -173,7 +173,7 @@ mod tests {
         );
     }
 
-    /// Checks that a flow idle for long is forgotten.
+    /// Checks that a flow unused for the idle timeout has no fate left, so its later packets wait again.
     #[test]
     fn forgets_idle_flows() {
         let (mut table, now) = (Table::new(), Instant::now());
