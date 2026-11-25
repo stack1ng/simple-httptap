@@ -16,7 +16,7 @@ path = "main.rs"
 
 [[test]]
 name = "conformance"
-path = "conformance.rs"
+path = "conformance_run.rs"
 
 [lints]
 workspace = true

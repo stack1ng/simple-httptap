@@ -5,7 +5,7 @@ edition = "2024"
 publish = false
 
 [lib]
-path = "conformance.rs"
+path = "suite.rs"
 
 [dependencies]
 simple-httptap-trust = { path = ".." }
