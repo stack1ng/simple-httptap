@@ -52,11 +52,15 @@ const SOCKS_PORT: u16 = 1080;
 const COLON: &str = ":";
 /// The name of the key log the proxy writes when it intercepts, in the system's temporary folder.
 const OWN_KEYLOG_PREFIX: &str = "httptap-keys-";
-/// The extension of a key log file.
+/// The end of the proxy's own key log name, after the process ID, which marks the file as a log.
 const KEYLOG_EXTENSION: &str = ".log";
 /// How long the proxy keeps writing after the program exited, for the last bytes of its connections.
+///
+/// https://doc.rust-lang.org/std/thread/fn.sleep.html
 const DRAIN: Duration = Duration::from_millis(500);
-/// The exit code of a program a signal ended, before the signal's number is added.
+/// The exit code of a program a signal ended, before the signal's number is added, as shells report it.
+///
+/// https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html
 const SIGNALLED: i32 = 128;
 /// The host the startup check asks the system to trust a certificate for.
 const CHECKED_HOST: &str = "localhost";
@@ -73,28 +77,35 @@ const NOT_UTF8: &str = "not UTF-8";
 const NOT_SOCKS: &str = "only socks5:// proxies are supported";
 const NO_HOST: &str = "no host";
 
-/// The help printed for a call without a program.
-const USAGE: &str = "usage: httptap [--] <program> [arguments...]   run the program, writing every request and response it makes to stdout as JSON lines
+/// The start of the help printed for a call without a program, before the end-of-options argument.
+const USAGE_START: &str = "usage: httptap [";
+/// The help's commands and its text up to the key log variable.
+const USAGE_COMMANDS: &str =
+    "] <program> [arguments...]   run the program, writing every request and response it makes to stdout as JSON lines
        httptap trust                            add the root certificate to your trust store, for when httptap intercepts
 
 All the program's TCP and UDP traffic, and its children's, goes through httptap, so HTTP/3 is seen too.
-With SSLKEYLOGFILE set, the program logs its own TLS secrets there (Chrome, Firefox, curl, Python, Node with
+With ";
+/// The help's text from the key log variable to the upstream variable.
+const USAGE_KEYLOG: &str = " set, the program logs its own TLS secrets there (Chrome, Firefox, curl, Python, Node with
 --tls-keylog do) and httptap decrypts its traffic without touching it. Without it, httptap intercepts TLS with its
 own root certificate, which the program must trust, and the server sees httptap's TLS instead of the program's.
-Set HTTPTAP_UPSTREAM_PROXY=socks5://[user:password@]host:port to go out through another SOCKS5 proxy.";
+Set ";
+/// The help's text after the upstream variable.
+const USAGE_UPSTREAM: &str = "=socks5://[user:password@]host:port to go out through another SOCKS5 proxy.";
 
 fn main() -> ExitCode {
     let mut arguments: Vec<OsString> = std::env::args_os().skip(1).collect();
     let result = match arguments.first().and_then(|first| first.to_str()) {
         None => {
-            eprintln!("{USAGE}");
+            print_usage();
             return ExitCode::FAILURE;
         }
         Some(TRUST_COMMAND) if arguments.len() == 1 => trust().map(|()| ExitCode::SUCCESS),
         Some(END_OF_OPTIONS) => {
             arguments.remove(usize::MIN);
             if arguments.is_empty() {
-                eprintln!("{USAGE}");
+                print_usage();
                 return ExitCode::FAILURE;
             }
             run(arguments)
@@ -111,12 +122,17 @@ fn main() -> ExitCode {
     }
 }
 
+/// Prints the help to standard error.
+fn print_usage() {
+    eprintln!("{USAGE_START}{END_OF_OPTIONS}{USAGE_COMMANDS}{KEYLOG_VARIABLE}{USAGE_KEYLOG}{UPSTREAM_VARIABLE}{USAGE_UPSTREAM}");
+}
+
 /// Runs the program with its traffic through the proxy until it exits, then exits as it did.
 fn run(mut arguments: Vec<OsString>) -> std::io::Result<ExitCode> {
     let path = arguments.remove(usize::MIN);
     let (mode, keylog) = match std::env::var_os(KEYLOG_VARIABLE).filter(|value| !value.is_empty()) {
         Some(file) => (Mode::PassThrough, PathBuf::from(file)),
-        None => (Mode::Intercept, own_keylog()?),
+        None => (Mode::Intercept, create_own_keylog()?),
     };
     let keys = FileKeylog.open(&keylog)?;
     let signer = RcgenAuthority.open(&data_folder()?)?;
@@ -156,7 +172,7 @@ fn exit_code(status: std::process::ExitStatus) -> u8 {
 }
 
 /// Makes the key log the proxy writes when it intercepts, readable only by its owner, and returns its path.
-fn own_keylog() -> std::io::Result<PathBuf> {
+fn create_own_keylog() -> std::io::Result<PathBuf> {
     let file = std::env::temp_dir().join(format!("{OWN_KEYLOG_PREFIX}{}{KEYLOG_EXTENSION}", std::process::id()));
     let mut options = std::fs::OpenOptions::new();
     options.create(true).truncate(true).write(true);
@@ -167,6 +183,8 @@ fn own_keylog() -> std::io::Result<PathBuf> {
 }
 
 /// The permissions of a file only its owner may read and write.
+///
+/// https://doc.rust-lang.org/std/os/unix/fs/trait.OpenOptionsExt.html#tymethod.mode
 #[cfg(unix)]
 const OWNER_ONLY: u32 = 0o600;
 
@@ -185,16 +203,11 @@ fn trust() -> std::io::Result<()> {
         Ok(Outcome::Trusted) => eprintln!("trusted the root certificate in {}; restart browsers that were open", folder.display()),
         Ok(Outcome::AlreadyTrusted) => eprintln!("the root certificate in {} was trusted already", folder.display()),
         Err(fault)
-            if fault.kind() == ErrorKind::PermissionDenied
-                && cfg!(target_os = "linux")
-                && std::env::var_os(SUDO_MARKER).is_none() =>
+            if fault.kind() == ErrorKind::PermissionDenied && cfg!(target_os = "linux") && std::env::var_os(SUDO_MARKER).is_none() =>
         {
             eprintln!("{PROGRAM}: the system trust store needs root, so this asks sudo");
-            let status = std::process::Command::new(SUDO)
-                .args(SUDO_KEEPING_FOLDERS)
-                .arg(std::env::current_exe()?)
-                .arg(TRUST_COMMAND)
-                .status()?;
+            let status =
+                std::process::Command::new(SUDO).args(SUDO_KEEPING_FOLDERS).arg(std::env::current_exe()?).arg(TRUST_COMMAND).status()?;
             if !status.success() {
                 return Err(std::io::Error::new(ErrorKind::PermissionDenied, format!("{SUDO} {TRUST_COMMAND} failed with {status}")));
             }
@@ -233,11 +246,17 @@ fn upstream_proxy() -> std::io::Result<Option<Upstream>> {
 /// Returns whether the operating system trusts a certificate the signer issues, checked as clients check it.
 fn is_root_trusted(signer: &RcgenSigner) -> bool {
     let provider = Arc::new(tokio_rustls::rustls::crypto::ring::default_provider());
-    let Ok(verifier) = rustls_platform_verifier::Verifier::new(provider) else { return false };
-    let Ok(issued) = signer.issue_certificate(CHECKED_HOST) else { return false };
-    let Some((host_certificate, _)) = issued.chain.split_first() else { return false };
-    let Ok(name) = ServerName::try_from(CHECKED_HOST) else { return false };
-    verifier
-        .verify_server_cert(&CertificateDer::from(host_certificate.as_slice()), &[], &name, &[], UnixTime::now())
-        .is_ok()
+    let Ok(verifier) = rustls_platform_verifier::Verifier::new(provider) else {
+        return false;
+    };
+    let Ok(issued) = signer.issue_certificate(CHECKED_HOST) else {
+        return false;
+    };
+    let Some((host_certificate, _)) = issued.chain.split_first() else {
+        return false;
+    };
+    let Ok(name) = ServerName::try_from(CHECKED_HOST) else {
+        return false;
+    };
+    verifier.verify_server_cert(&CertificateDer::from(host_certificate.as_slice()), &[], &name, &[], UnixTime::now()).is_ok()
 }

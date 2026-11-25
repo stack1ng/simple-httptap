@@ -15,15 +15,19 @@ use tokio::net::{TcpStream, UdpSocket};
 use tokio::sync::mpsc;
 
 use crate::Shared;
-use crate::socks::{self, Address, Status};
 use crate::quic;
+use crate::socks::{self, Address, Status};
 use crate::watch::{Watch, is_quic_start};
 
-/// The largest datagram a UDP socket carries, with room for the SOCKS5 header in front.
-const DATAGRAM_LIMIT: usize = 65_535;
-/// How long a flow lives without a datagram either way before it is taken as closed.
+/// The largest datagram a UDP socket carries, the most its 16-bit length allows, with room for a SOCKS5 header.
+///
+/// https://www.rfc-editor.org/rfc/rfc768
+pub(crate) const DATAGRAM_LIMIT: usize = 65_535;
+/// How long a flow lives without a datagram either way before it is taken as closed, the least a NAT may keep one.
 ///
 /// QUIC's longest common idle timeout is 30 seconds, and this outlives it.
+///
+/// https://www.rfc-editor.org/rfc/rfc4787#section-4.3
 const FLOW_IDLE: Duration = Duration::from_secs(120);
 
 /// A datagram one way: to the destination, from the client; or to the client, from the destination it names.
@@ -39,7 +43,9 @@ pub(crate) async fn serve(shared: Arc<Shared>, mut control: TcpStream, peer: Soc
             return;
         }
     };
-    let Ok(bound) = relay.local_addr() else { return };
+    let Ok(bound) = relay.local_addr() else {
+        return;
+    };
     if socks::reply(&mut control, Status::Succeeded, bound).await.is_err() {
         return;
     }
@@ -102,7 +108,9 @@ async fn run_flow(
     mut from_client: mpsc::UnboundedReceiver<Vec<u8>>,
     replies: mpsc::UnboundedSender<Datagram>,
 ) {
-    let Some(first) = from_client.recv().await else { return };
+    let Some(first) = from_client.recv().await else {
+        return;
+    };
     let connection = Connection { id, client, target: target.to_string(), transport: Transport::Udp, tls: false, protocol: None };
     let (copies, received) = mpsc::unbounded_channel();
     let watching = tokio::spawn(Watch::new(Arc::clone(&shared), connection).run(received));

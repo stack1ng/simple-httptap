@@ -14,10 +14,10 @@ pub trait ConnectionDecoder: Send + 'static {
     /// Reads the next bytes one side sent and returns everything they completed.
     fn decode(&mut self, direction: Direction, bytes: &[u8]) -> Vec<Decoded>;
 
-    /// Reads the next bytes one side sent on a stream of the transport's own, such as a QUIC stream.
+    /// Reads the next bytes one side sent on a transport stream, such as a QUIC stream.
     ///
-    /// `fin` says the side ended the stream with them. A version whose transport has no streams of its own,
-    /// which is every version before HTTP/3, gives them back unparsed.
+    /// `fin` says the side ended the stream with them. A version whose transport has no streams, every one before
+    /// HTTP/3, gives them back unparsed.
     fn decode_stream(&mut self, direction: Direction, stream: u64, bytes: &[u8], fin: bool) -> Vec<Decoded> {
         let _ = (stream, fin);
         if bytes.is_empty() {

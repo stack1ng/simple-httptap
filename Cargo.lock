@@ -1439,8 +1439,6 @@ dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-decrypter",
  "simple-httptap-keylog",
- "simple-httptap-keylog-file",
- "tempfile",
 ]
 
 [[package]]

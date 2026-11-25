@@ -10,50 +10,87 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::TcpStream;
 
 /// The protocol version every SOCKS5 message starts with.
-const VERSION: u8 = 5;
-/// The method that needs no authentication.
-const NO_AUTHENTICATION: u8 = 0x00;
-/// The username/password method.
 ///
-/// https://www.rfc-editor.org/rfc/rfc1929
-const USERNAME_PASSWORD: u8 = 0x02;
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
+const SOCKS_VERSION: u8 = 5;
+/// The method code a client offers, and a server chooses, to go without authentication.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
+const METHOD_NO_AUTHENTICATION: u8 = 0x00;
+/// The method code for authenticating with a user name and password, as RFC 1929 lays out.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
+const METHOD_USERNAME_PASSWORD: u8 = 0x02;
 /// The answer that none of the client's methods is acceptable.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
 const NO_ACCEPTABLE_METHODS: u8 = 0xFF;
+/// The greeting's method count and methods when the upstream is given no credentials.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
+const METHODS_WITHOUT_CREDENTIALS: [u8; 2] = [1, METHOD_NO_AUTHENTICATION];
+/// The greeting's method count and methods when the upstream is given credentials.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-3
+const METHODS_WITH_CREDENTIALS: [u8; 3] = [2, METHOD_NO_AUTHENTICATION, METHOD_USERNAME_PASSWORD];
 /// The version of the username/password subnegotiation.
+///
+/// https://www.rfc-editor.org/rfc/rfc1929#section-2
 const USERNAME_PASSWORD_VERSION: u8 = 0x01;
 /// The username/password status that means success.
+///
+/// https://www.rfc-editor.org/rfc/rfc1929#section-2
 const AUTHENTICATED: u8 = 0x00;
 /// The reserved byte in requests, replies and UDP headers.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-4
 const RESERVED: u8 = 0x00;
-/// The address type of an IPv4 address.
-const IPV4: u8 = 0x01;
+/// The address type saying four octets of IPv4 address follow.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-5
+const ATYP_IPV4: u8 = 0x01;
 /// The address type of a domain name, its length first.
-const DOMAIN_NAME: u8 = 0x03;
-/// The address type of an IPv6 address.
-const IPV6: u8 = 0x04;
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-5
+const ATYP_DOMAIN_NAME: u8 = 0x03;
+/// The address type saying sixteen octets of IPv6 address follow.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-5
+const ATYP_IPV6: u8 = 0x04;
 /// The fragment number of a whole UDP datagram, the only kind this proxy relays.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-7
 const WHOLE_DATAGRAM: u8 = 0x00;
 /// The bytes before a UDP datagram's address: two reserved bytes and the fragment number.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-7
 const UDP_HEADER_START: usize = 3;
+/// The separator between a domain name and its port when an address is shown.
+const PORT_SEPARATOR: char = ':';
+/// The detail of the error that fails a connection whose request names a host in bytes that are not UTF-8.
+const DOMAIN_NOT_UTF8: &str = "a domain name that is not UTF-8";
+/// The detail of the error that ends a client's connection once it is told no method it offered is acceptable.
+const AUTHENTICATION_REQUIRED: &str = "the client offered no method without authentication";
+/// The detail of the error that stops an upstream request, as RFC 1929 gives each credential one length byte.
+const CREDENTIALS_TOO_LONG: &str = "a user name or password longer than 255 bytes";
 /// The bytes of a port.
 const PORT_SIZE: usize = size_of::<u16>();
 
-/// A command a client asks for.
+/// A command a client asks for, each with its code on the wire.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-4
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
 pub(crate) enum Command {
-    Connect,
-    Bind,
-    UdpAssociate,
+    Connect = 0x01,
+    Bind = 0x02,
+    UdpAssociate = 0x03,
 }
 
 impl Command {
-    /// The command's code on the wire.
+    /// Returns the command's code on the wire.
     const fn code(self) -> u8 {
-        match self {
-            Self::Connect => 0x01,
-            Self::Bind => 0x02,
-            Self::UdpAssociate => 0x03,
-        }
+        self as u8
     }
 
     /// Returns the command a code names, or none for an unknown one.
@@ -62,30 +99,25 @@ impl Command {
     }
 }
 
-/// A reply's status.
+/// A reply's status, each with its code on the wire.
+///
+/// https://www.rfc-editor.org/rfc/rfc1928#section-6
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
 pub(crate) enum Status {
-    Succeeded,
-    GeneralFailure,
-    NetworkUnreachable,
-    HostUnreachable,
-    ConnectionRefused,
-    CommandNotSupported,
-    AddressTypeNotSupported,
+    Succeeded = 0x00,
+    GeneralFailure = 0x01,
+    NetworkUnreachable = 0x03,
+    HostUnreachable = 0x04,
+    ConnectionRefused = 0x05,
+    CommandNotSupported = 0x07,
+    AddressTypeNotSupported = 0x08,
 }
 
 impl Status {
-    /// The status's code on the wire.
+    /// Returns the status's code on the wire.
     const fn code(self) -> u8 {
-        match self {
-            Self::Succeeded => 0x00,
-            Self::GeneralFailure => 0x01,
-            Self::NetworkUnreachable => 0x03,
-            Self::HostUnreachable => 0x04,
-            Self::ConnectionRefused => 0x05,
-            Self::CommandNotSupported => 0x07,
-            Self::AddressTypeNotSupported => 0x08,
-        }
+        self as u8
     }
 
     /// Returns the status that best tells a client why a connection failed.
@@ -110,7 +142,7 @@ impl fmt::Display for Address {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Ip(address) => address.fmt(formatter),
-            Self::Domain(name, port) => write!(formatter, "{name}:{port}"),
+            Self::Domain(name, port) => write!(formatter, "{name}{PORT_SEPARATOR}{port}"),
         }
     }
 }
@@ -128,17 +160,17 @@ impl Address {
     fn encode(&self, output: &mut Vec<u8>) {
         let port = match self {
             Self::Ip(SocketAddr::V4(address)) => {
-                output.push(IPV4);
+                output.push(ATYP_IPV4);
                 output.extend(address.ip().octets());
                 address.port()
             }
             Self::Ip(SocketAddr::V6(address)) => {
-                output.push(IPV6);
+                output.push(ATYP_IPV6);
                 output.extend(address.ip().octets());
                 address.port()
             }
             Self::Domain(name, port) => {
-                output.push(DOMAIN_NAME);
+                output.push(ATYP_DOMAIN_NAME);
                 output.push(u8::try_from(name.len()).unwrap_or(u8::MAX));
                 output.extend(name.as_bytes().iter().take(usize::from(u8::MAX)));
                 *port
@@ -151,21 +183,21 @@ impl Address {
     async fn read<R: AsyncRead + Unpin>(reader: &mut R) -> std::io::Result<Self> {
         let kind = reader.read_u8().await?;
         let ip = match kind {
-            IPV4 => {
+            ATYP_IPV4 => {
                 let mut octets = [u8::MIN; size_of::<u32>()];
                 reader.read_exact(&mut octets).await?;
                 IpAddr::V4(Ipv4Addr::from(octets))
             }
-            IPV6 => {
+            ATYP_IPV6 => {
                 let mut octets = [u8::MIN; size_of::<u128>()];
                 reader.read_exact(&mut octets).await?;
                 IpAddr::V6(Ipv6Addr::from(octets))
             }
-            DOMAIN_NAME => {
+            ATYP_DOMAIN_NAME => {
                 let mut name = vec![u8::MIN; usize::from(reader.read_u8().await?)];
                 reader.read_exact(&mut name).await?;
                 let port = reader.read_u16().await?;
-                let name = String::from_utf8(name).map_err(|_| invalid("a domain name that is not UTF-8"))?;
+                let name = String::from_utf8(name).map_err(|_| invalid(DOMAIN_NOT_UTF8))?;
                 return Ok(Self::Domain(name, port));
             }
             _ => return Err(unsupported_address_type(kind)),
@@ -177,15 +209,15 @@ impl Address {
     fn parse(bytes: &[u8]) -> Option<(Self, usize)> {
         let (&kind, rest) = bytes.split_first()?;
         let (address, size) = match kind {
-            IPV4 => {
+            ATYP_IPV4 => {
                 let octets: [u8; size_of::<u32>()] = rest.get(..size_of::<u32>())?.try_into().ok()?;
                 (IpAddr::V4(Ipv4Addr::from(octets)), size_of::<u32>())
             }
-            IPV6 => {
+            ATYP_IPV6 => {
                 let octets: [u8; size_of::<u128>()] = rest.get(..size_of::<u128>())?.try_into().ok()?;
                 (IpAddr::V6(Ipv6Addr::from(octets)), size_of::<u128>())
             }
-            DOMAIN_NAME => {
+            ATYP_DOMAIN_NAME => {
                 let (&length, rest) = rest.split_first()?;
                 let length = usize::from(length);
                 let name = String::from_utf8(rest.get(..length)?.to_vec()).ok()?;
@@ -234,11 +266,11 @@ pub(crate) async fn accept<S: AsyncRead + AsyncWrite + Unpin>(stream: &mut S) ->
     expect_version(stream.read_u8().await?)?;
     let mut methods = vec![u8::MIN; usize::from(stream.read_u8().await?)];
     stream.read_exact(&mut methods).await?;
-    if !methods.contains(&NO_AUTHENTICATION) {
-        stream.write_all(&[VERSION, NO_ACCEPTABLE_METHODS]).await?;
-        return Err(invalid("the client offered no method without authentication"));
+    if !methods.contains(&METHOD_NO_AUTHENTICATION) {
+        stream.write_all(&[SOCKS_VERSION, NO_ACCEPTABLE_METHODS]).await?;
+        return Err(invalid(AUTHENTICATION_REQUIRED));
     }
-    stream.write_all(&[VERSION, NO_AUTHENTICATION]).await?;
+    stream.write_all(&[SOCKS_VERSION, METHOD_NO_AUTHENTICATION]).await?;
     expect_version(stream.read_u8().await?)?;
     let code = stream.read_u8().await?;
     let _reserved = stream.read_u8().await?;
@@ -258,7 +290,7 @@ pub(crate) async fn accept<S: AsyncRead + AsyncWrite + Unpin>(stream: &mut S) ->
 
 /// Writes a reply with its status and the address the proxy bound for the request.
 pub(crate) async fn reply<S: AsyncWrite + Unpin>(stream: &mut S, status: Status, bound: SocketAddr) -> std::io::Result<()> {
-    let mut message = vec![VERSION, status.code(), RESERVED];
+    let mut message = vec![SOCKS_VERSION, status.code(), RESERVED];
     Address::Ip(bound).encode(&mut message);
     stream.write_all(&message).await?;
     stream.flush().await
@@ -266,10 +298,10 @@ pub(crate) async fn reply<S: AsyncWrite + Unpin>(stream: &mut S, status: Status,
 
 /// Returns an error unless the byte is SOCKS5's version.
 fn expect_version(version: u8) -> std::io::Result<()> {
-    if version == VERSION {
+    if version == SOCKS_VERSION {
         return Ok(());
     }
-    Err(invalid(&format!("version {version}, not {VERSION}")))
+    Err(invalid(&format!("version {version}, not {SOCKS_VERSION}")))
 }
 
 /// Returns a UDP datagram for a relay: the header with the address, then the payload.
@@ -292,21 +324,21 @@ pub(crate) fn unwrap_datagram(datagram: &[u8]) -> Option<(Address, &[u8])> {
 
 /// Greets the upstream proxy, authenticating if it asks, and sends the request; returns its reply's bound address.
 async fn request_upstream(stream: &mut TcpStream, upstream: &Upstream, command: Command, address: &Address) -> std::io::Result<Address> {
-    let mut greeting = vec![VERSION];
+    let mut greeting = vec![SOCKS_VERSION];
     if upstream.credentials.is_some() {
-        greeting.extend([2, NO_AUTHENTICATION, USERNAME_PASSWORD]);
+        greeting.extend(METHODS_WITH_CREDENTIALS);
     } else {
-        greeting.extend([1, NO_AUTHENTICATION]);
+        greeting.extend(METHODS_WITHOUT_CREDENTIALS);
     }
     stream.write_all(&greeting).await?;
     expect_version(stream.read_u8().await?)?;
     match (stream.read_u8().await?, &upstream.credentials) {
-        (NO_AUTHENTICATION, _) => {}
-        (USERNAME_PASSWORD, Some(credentials)) => {
+        (METHOD_NO_AUTHENTICATION, _) => {}
+        (METHOD_USERNAME_PASSWORD, Some(credentials)) => {
             let mut message = vec![USERNAME_PASSWORD_VERSION];
             for part in [&credentials.user, &credentials.password] {
                 let part = part.as_bytes();
-                message.push(u8::try_from(part.len()).map_err(|_| invalid("a user name or password longer than 255 bytes"))?);
+                message.push(u8::try_from(part.len()).map_err(|_| invalid(CREDENTIALS_TOO_LONG))?);
                 message.extend_from_slice(part);
             }
             stream.write_all(&message).await?;
@@ -315,9 +347,11 @@ async fn request_upstream(stream: &mut TcpStream, upstream: &Upstream, command: 
                 return Err(std::io::Error::new(std::io::ErrorKind::PermissionDenied, "the upstream SOCKS5 proxy refused the user name and password"));
             }
         }
-        (method, _) => return Err(invalid(&format!("the upstream proxy chose method {method}, which this proxy cannot speak"))),
+        (method, _) => {
+            return Err(invalid(&format!("the upstream proxy chose method {method}, which this proxy cannot speak")));
+        }
     }
-    let mut request = vec![VERSION, command.code(), RESERVED];
+    let mut request = vec![SOCKS_VERSION, command.code(), RESERVED];
     address.encode(&mut request);
     stream.write_all(&request).await?;
     expect_version(stream.read_u8().await?)?;

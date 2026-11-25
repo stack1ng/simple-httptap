@@ -1,8 +1,7 @@
-//! A QUIC connection intercepted: ended toward the client with a certificate of the proxy's own, and made again to
-//! the server with QUIC of the proxy's own, whose secrets go to the key log.
+//! An intercepted QUIC connection: ended toward the client with the proxy's certificate, and made again to the server.
 //!
-//! Streams and datagrams are relayed between the two. The watch reads the datagrams that went to and came from the
-//! server and decrypts them with the logged secrets, as it does any QUIC.
+//! The proxy's own QUIC to the server logs its secrets to the key log. Streams and datagrams are relayed between the
+//! two, and the watch decrypts the server side's datagrams with the logged secrets, as it does any QUIC.
 
 use std::fmt;
 use std::io::IoSliceMut;
@@ -18,25 +17,26 @@ use simple_httptap_authority::Signer;
 use simple_httptap_decoder::Direction;
 use tokio::net::UdpSocket;
 use tokio::sync::mpsc;
+use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls::rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 use tokio_rustls::rustls::server::{ClientHello, ResolvesServerCert};
 use tokio_rustls::rustls::sign::CertifiedKey;
-use tokio_rustls::rustls::ServerConfig;
 
 use crate::Shared;
 use crate::socks::{self, Address};
-use crate::watch::Copy;
+use crate::udp::DATAGRAM_LIMIT;
+use crate::watch::{Copy, HTTP3};
 
 /// The application protocols the proxy offers a QUIC client: HTTP/3, its last draft, and the interop test protocol.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-3.1
-const PROTOCOLS: &[&[u8]] = &[b"h3", b"h3-29", b"hq-interop"];
+const PROTOCOLS: &[&[u8]] = &[HTTP3, b"h3-29", b"hq-interop"];
 /// The error code the proxy closes a connection with when its other side closed without one.
+///
+/// https://docs.rs/quinn/latest/quinn/struct.Connection.html#method.close
 const NO_ERROR: VarInt = VarInt::from_u32(0);
 /// The reason the proxy gives a client when the server could not be reached.
 const UNREACHABLE: &[u8] = b"httptap could not reach the server";
-/// The largest datagram either socket receives.
-const DATAGRAM_LIMIT: usize = 65_535;
 
 /// A datagram one way: to the client, from the destination it names.
 type Datagram = (Address, Vec<u8>);
@@ -186,7 +186,7 @@ struct Certificates {
 
 impl fmt::Debug for Certificates {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("Certificates")
+        formatter.write_str(std::any::type_name::<Self>())
     }
 }
 
@@ -233,7 +233,7 @@ impl ClientSocket {
 
 impl fmt::Debug for ClientSocket {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("ClientSocket").field("client", &self.client).finish_non_exhaustive()
+        formatter.debug_tuple(std::any::type_name::<Self>()).field(&self.client).finish()
     }
 }
 
@@ -254,7 +254,9 @@ impl AsyncUdpSocket for ClientSocket {
         let datagram = match first {
             Some(datagram) => datagram,
             None => {
-                let Ok(mut from_client) = self.from_client.lock() else { return Poll::Pending };
+                let Ok(mut from_client) = self.from_client.lock() else {
+                    return Poll::Pending;
+                };
                 match from_client.poll_recv(context) {
                     Poll::Ready(Some(datagram)) => datagram,
                     Poll::Ready(None) | Poll::Pending => return Poll::Pending,
@@ -292,7 +294,7 @@ impl ServerSocket {
 
 impl fmt::Debug for ServerSocket {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("ServerSocket").field("destination", &self.destination).finish_non_exhaustive()
+        formatter.debug_tuple(std::any::type_name::<Self>()).field(&self.destination).finish()
     }
 }
 
@@ -339,7 +341,7 @@ impl AsyncUdpSocket for ServerSocket {
     }
 }
 
-/// The poller of the socket toward the server, ready when its UDP socket can send.
+/// A writability check on the UDP socket toward the server, ready once that socket can send.
 #[derive(Debug)]
 struct ServerPoller(Arc<ServerSocket>);
 
@@ -369,12 +371,19 @@ fn segments<'a>(transmit: &'a Transmit<'_>) -> Vec<&'a [u8]> {
 
 /// Copies a datagram into the first buffer and describes it, returning how many datagrams were delivered: one.
 fn deliver(datagram: &[u8], from: SocketAddr, buffers: &mut [IoSliceMut<'_>], meta: &mut [RecvMeta]) -> usize {
-    let (Some(buffer), Some(slot)) = (buffers.first_mut(), meta.first_mut()) else { return usize::MIN };
+    let (Some(buffer), Some(slot)) = (buffers.first_mut(), meta.first_mut()) else {
+        return usize::MIN;
+    };
     let length = datagram.len().min(buffer.len());
     buffer[..length].copy_from_slice(&datagram[..length]);
     *slot = RecvMeta { addr: from, len: length, stride: length, ecn: None, dst_ip: None };
-    1
+    ONE_DATAGRAM
 }
+
+/// The count of datagrams `deliver` reports, as it fills only the first buffer.
+///
+/// https://docs.rs/quinn/latest/quinn/trait.AsyncUdpSocket.html#tymethod.poll_recv
+const ONE_DATAGRAM: usize = 1;
 
 /// Returns the unspecified address of the family of an address, for binding a socket that reaches it.
 fn unspecified(family: IpAddr) -> SocketAddr {

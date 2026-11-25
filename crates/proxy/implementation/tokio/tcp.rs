@@ -26,6 +26,8 @@ use crate::socks::{self, Address, Status};
 use crate::watch::{Copy, Watch};
 
 /// How long an intercepting proxy waits for a client's first byte before taking it for a protocol where the server speaks first.
+///
+/// https://docs.rs/tokio/latest/tokio/time/fn.timeout.html
 const FIRST_BYTE_WAIT: Duration = Duration::from_secs(1);
 
 /// Connects to the CONNECT's destination, answers the client, and serves the connection until both sides close.
@@ -130,10 +132,7 @@ async fn intercept(
     config.alpn_protocols = offered;
     let name = ServerName::try_from(host.clone()).map_err(|fault| format!("the host {host:?}: {fault}"))?;
     let tee = Tee { inner: upstream, copies };
-    let upstream = TlsConnector::from(Arc::new(config))
-        .connect(name, tee)
-        .await
-        .map_err(|fault| format!("TLS to {target} as {host}: {fault}"))?;
+    let upstream = TlsConnector::from(Arc::new(config)).connect(name, tee).await.map_err(|fault| format!("TLS to {target} as {host}: {fault}"))?;
     let chosen = upstream.get_ref().1.alpn_protocol().map(<[u8]>::to_vec);
     let server_config = shared.server_config(&host, chosen)?;
     let client = start.into_stream(Arc::new(server_config)).await.map_err(|fault| format!("TLS with the client for {host}: {fault}"))?;

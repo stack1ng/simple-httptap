@@ -1,8 +1,7 @@
 //! A redirector through the httptap app's network extension, which hands the flows of a program's processes to the proxy.
 //!
-//! The extension keeps a control socket; each capture registers the program's process there, and the extension sends
-//! every TCP and UDP flow of that process and its descendants to the proxy over SOCKS5. The program starts suspended
-//! and runs only once it is registered, so none of its traffic goes past the proxy.
+//! Each capture registers a suspended program on the extension's control socket, then lets it run, so the extension
+//! sends all its and its descendants' TCP and UDP to the proxy.
 
 use std::net::SocketAddr;
 use std::process::ExitStatus;
@@ -29,7 +28,7 @@ impl Redirector for ExtensionRedirector {
     }
 }
 
-/// A program started with its traffic going through the extension, and the registration that keeps it so.
+/// The handle to a program whose traffic goes through the extension, holding the registration that keeps it so.
 #[derive(Debug)]
 pub struct ExtensionCapture {
     pid: u32,
@@ -83,13 +82,23 @@ mod macos {
     /// The argument that tells the app to install the extension and start the proxy.
     const ACTIVATE: &str = "--activate";
     /// How long the extension may take to answer once the app started it, approval in System Settings included.
+    ///
+    /// https://developer.apple.com/documentation/systemextensions/installing-system-extensions-and-drivers
     const START_WAIT: Duration = Duration::from_secs(120);
     /// How long the control socket is tried after the app failed, in case another httptap started the extension.
+    ///
+    /// https://doc.rust-lang.org/std/os/unix/net/struct.UnixStream.html#method.connect
     const RACE_WAIT: Duration = Duration::from_secs(5);
-    /// How often the control socket is tried while the extension starts.
+    /// How long to sleep between tries of the control socket while the extension starts.
+    ///
+    /// https://doc.rust-lang.org/std/thread/fn.sleep.html
     const START_POLL: Duration = Duration::from_millis(100);
-    /// The flag of Apple's `posix_spawn` that starts the process stopped.
-    const POSIX_SPAWN_START_SUSPENDED: libc::c_short = 0x0080;
+    /// The separator between a variable's name and value in an environment entry.
+    const ENVIRONMENT_SEPARATOR: &str = "=";
+    /// The `waitpid` options that block until the child exits, with no other behaviour.
+    ///
+    /// https://pubs.opengroup.org/onlinepubs/9799919799/functions/waitpid.html
+    const WAIT_FOR_EXIT: libc::c_int = 0;
 
     /// Registers the program with the extension, starting the extension first if it is not running, then runs it.
     pub(super) fn launch(program: &Program, proxy: SocketAddr) -> std::io::Result<ExtensionCapture> {
@@ -185,7 +194,7 @@ mod macos {
             .into_iter()
             .map(|(name, value)| {
                 let mut pair = name;
-                pair.push("=");
+                pair.push(ENVIRONMENT_SEPARATOR);
                 pair.push(value);
                 c_string(&pair)
             })
@@ -194,7 +203,7 @@ mod macos {
         argv.push(std::ptr::null_mut());
         let mut envp: Vec<*mut libc::c_char> = environment.iter().map(|pair| pair.as_ptr().cast_mut()).collect();
         envp.push(std::ptr::null_mut());
-        let mut pid: libc::pid_t = 0;
+        let mut pid = libc::pid_t::default();
         // SAFETY: the attributes are initialised before use and destroyed after; every pointer passed points into a
         // CString or a null-terminated array that lives until posix_spawnp returns.
         let spawned = unsafe {
@@ -203,7 +212,7 @@ mod macos {
             if initialised != 0 {
                 return Err(std::io::Error::from_raw_os_error(initialised));
             }
-            libc::posix_spawnattr_setflags(&mut attributes, POSIX_SPAWN_START_SUSPENDED);
+            libc::posix_spawnattr_setflags(&mut attributes, libc::POSIX_SPAWN_START_SUSPENDED as libc::c_short);
             let mut actions: libc::posix_spawn_file_actions_t = std::ptr::null_mut();
             libc::posix_spawn_file_actions_init(&mut actions);
             libc::posix_spawn_file_actions_adddup2(&mut actions, libc::STDERR_FILENO, libc::STDOUT_FILENO);
@@ -227,10 +236,10 @@ mod macos {
     /// Waits for the process to exit and returns how it did.
     pub(super) fn wait(pid: u32) -> std::io::Result<ExitStatus> {
         let pid = libc::pid_t::try_from(pid).map_err(|_| std::io::Error::new(ErrorKind::InvalidInput, "no such process"))?;
-        let mut status: libc::c_int = 0;
+        let mut status = libc::c_int::default();
         loop {
             // SAFETY: status points to a live integer; the process is this process's child.
-            let waited = unsafe { libc::waitpid(pid, &mut status, 0) };
+            let waited = unsafe { libc::waitpid(pid, &mut status, WAIT_FOR_EXIT) };
             if waited == pid {
                 return Ok(ExitStatus::from_raw(status));
             }
@@ -250,15 +259,30 @@ mod embedded {
     /// The notarized httptap.app, zipped, when the build was given one in `HTTPTAP_REDIRECTOR_APP_ZIP`.
     #[cfg(httptap_embedded_app)]
     const APP_ZIP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/httptap-app.zip"));
+    /// The start of the name of the temporary copy of the zipped app, which the process ID follows.
+    #[cfg(httptap_embedded_app)]
+    const TEMPORARY_ZIP_PREFIX: &str = "httptap-app-";
+    /// The end of the name of the temporary copy of the zipped app.
+    #[cfg(httptap_embedded_app)]
+    const ZIP_EXTENSION: &str = ".zip";
+    /// The tool that unpacks the zipped app, keeping the bundle's signature and extended attributes.
+    #[cfg(httptap_embedded_app)]
+    const DITTO: &str = "/usr/bin/ditto";
+    /// The `ditto` flags that extract a PKZip archive rather than copy files.
+    ///
+    /// https://keith.github.io/xcode-man-pages/ditto.1.html
+    #[cfg(httptap_embedded_app)]
+    const DITTO_EXTRACT_ZIP: [&str; 2] = ["-x", "-k"];
 
     /// Unpacks the app this build carries into the folder macOS installs system extensions from.
     pub(super) fn install(app: &Path) -> std::io::Result<()> {
         #[cfg(httptap_embedded_app)]
         {
             let folder = app.parent().ok_or_else(|| std::io::Error::new(ErrorKind::NotFound, "no Applications folder"))?;
-            let zip = std::env::temp_dir().join(format!("httptap-app-{}.zip", std::process::id()));
+            let pid = std::process::id();
+            let zip = std::env::temp_dir().join(format!("{TEMPORARY_ZIP_PREFIX}{pid}{ZIP_EXTENSION}"));
             std::fs::write(&zip, APP_ZIP)?;
-            let status = std::process::Command::new("/usr/bin/ditto").arg("-x").arg("-k").arg(&zip).arg(folder).status();
+            let status = std::process::Command::new(DITTO).args(DITTO_EXTRACT_ZIP).arg(&zip).arg(folder).status();
             let _ = std::fs::remove_file(&zip);
             if status?.success() && app.exists() {
                 return Ok(());

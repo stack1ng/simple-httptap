@@ -1,37 +1,30 @@
-//! A way to send one program's TCP and UDP traffic, and that of every process it starts, through a SOCKS5 proxy.
-//!
-//! The program is not told: it connects as it always does, so a browser keeps HTTP/3, which no proxy setting carries.
+//! Sending a program tree's TCP and UDP through a SOCKS5 proxy.
 
 use std::ffi::OsString;
 use std::net::SocketAddr;
 use std::process::ExitStatus;
 
-/// A way of redirecting the traffic of the programs it starts.
+/// A launcher of redirected programs.
 pub trait Redirector {
-    /// A started program whose traffic goes through the proxy.
     type Capture: Capture;
 
-    /// Starts the program with its traffic, and its descendants', going through the SOCKS5 proxy at the address.
+    /// Starts the program, sending its and its descendants' traffic through the SOCKS5 proxy at the address.
     ///
-    /// The program's standard output goes to this process's standard error, so this process's standard output carries
-    /// only what it writes itself; its standard input and standard error are this process's.
-    ///
-    /// An error of kind `Unsupported` means this system cannot redirect, and says what it lacks.
+    /// Its stdout goes to our stderr; stdin and stderr are ours. `Unsupported` errors say what we lack.
     fn launch(&self, program: &Program, proxy: SocketAddr) -> std::io::Result<Self::Capture>;
 }
 
-/// A program started with its traffic redirected.
+/// A running redirected program.
 pub trait Capture: Send + 'static {
-    /// Returns the started process's identifier.
     fn id(&self) -> u32;
 
-    /// Waits for the started process to exit, stops redirecting, and returns how it exited.
+    /// Waits for the exit, stops redirecting, and returns the status.
     fn wait(self) -> std::io::Result<ExitStatus>;
 }
 
-/// A program to start: its path or name, found on `PATH` as a shell would, and its arguments.
+/// A program to start, found on `PATH` as a shell would, with its arguments.
 ///
-/// `environment` holds the variables to set on top of this process's, or to remove where the value is none.
+/// `environment` sets variables over ours, removing `None` ones.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
     pub path: OsString,

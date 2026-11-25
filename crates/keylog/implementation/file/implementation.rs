@@ -10,7 +10,7 @@ use std::sync::Mutex;
 
 use simple_httptap_keylog::{Keylog, Keys};
 
-/// The key log kept in files.
+/// The keeper of NSS-format key log files, each read again whenever a secret is missing.
 #[derive(Debug, Default)]
 pub struct FileKeylog;
 
@@ -20,9 +20,9 @@ impl Keylog for FileKeylog {
     fn open(&self, file: &Path) -> std::io::Result<FileKeys> {
         let writer = OpenOptions::new().create(true).append(true).open(file)?;
         let reader = File::open(file)?;
-        let keys = FileKeys { state: Mutex::new(State { reader, read: u64::MIN, partial: Vec::new(), secrets: HashMap::new() }), writer: Mutex::new(writer) };
-        keys.catch_up();
-        Ok(keys)
+        let mut state = State { reader, read: u64::MIN, partial: Vec::new(), secrets: HashMap::new() };
+        state.catch_up();
+        Ok(FileKeys { state: Mutex::new(state), writer: Mutex::new(writer) })
     }
 }
 
@@ -43,15 +43,27 @@ struct State {
 }
 
 /// The byte that ends each line of a key log.
+///
+/// https://datatracker.ietf.org/doc/draft-ietf-tls-keylogfile/
 const LINE_END: u8 = b'\n';
 /// The byte that starts a comment line.
+///
+/// https://datatracker.ietf.org/doc/draft-ietf-tls-keylogfile/
 const COMMENT: u8 = b'#';
 /// The separator between a line's label, client random and secret.
 const SEPARATOR: char = ' ';
 /// The bits of a hex digit.
+///
+/// https://www.rfc-editor.org/rfc/rfc4648#section-8
 const NIBBLE_BITS: u32 = 4;
 /// The base of hex digits.
+///
+/// https://www.rfc-editor.org/rfc/rfc4648#section-8
 const HEX: u32 = 16;
+/// The hex digits that spell one byte.
+///
+/// https://www.rfc-editor.org/rfc/rfc4648#section-8
+const DIGITS_PER_BYTE: usize = 2;
 
 impl Keys for FileKeys {
     fn record(&self, label: &str, client_random: &[u8], secret: &[u8]) -> std::io::Result<()> {
@@ -69,16 +81,16 @@ impl Keys for FileKeys {
         if let Some(secret) = self.state.lock().ok()?.secrets.get(&key) {
             return Some(secret.clone());
         }
-        self.catch_up();
-        self.state.lock().ok()?.secrets.get(&key).cloned()
+        let mut state = self.state.lock().ok()?;
+        state.catch_up();
+        state.secrets.get(&key).cloned()
     }
 }
 
-impl FileKeys {
+impl State {
     /// Reads the lines written to the file since the last read; a file that shrank is read again from its start.
-    fn catch_up(&self) {
-        let Ok(mut state) = self.state.lock() else { return };
-        let State { reader, read, partial, secrets } = &mut *state;
+    fn catch_up(&mut self) {
+        let State { reader, read, partial, secrets } = self;
         let length = reader.metadata().map_or(*read, |metadata| metadata.len());
         if length < *read {
             *read = u64::MIN;
@@ -88,10 +100,14 @@ impl FileKeys {
             return;
         }
         let mut appended = Vec::new();
-        let Ok(count) = reader.read_to_end(&mut appended) else { return };
+        let Ok(count) = reader.read_to_end(&mut appended) else {
+            return;
+        };
         *read += count as u64;
         partial.extend(appended);
-        let Some(last_end) = partial.iter().rposition(|byte| *byte == LINE_END) else { return };
+        let Some(last_end) = partial.iter().rposition(|byte| *byte == LINE_END) else {
+            return;
+        };
         let rest = partial.split_off(last_end + 1);
         for line in partial.split(|byte| *byte == LINE_END) {
             if let Some((label, client_random, secret)) = parse_line(line) {
@@ -123,8 +139,8 @@ fn hex(bytes: &[u8]) -> String {
 /// Returns the bytes hex digits of either case spell, or none if they are no whole bytes of hex.
 fn unhex(text: &str) -> Option<Vec<u8>> {
     let digits: Vec<u8> = text.chars().map(|digit| digit.to_digit(HEX).and_then(|value| u8::try_from(value).ok())).collect::<Option<_>>()?;
-    if digits.len() % 2 != 0 {
+    if digits.len() % DIGITS_PER_BYTE != 0 {
         return None;
     }
-    Some(digits.chunks(2).map(|pair| (pair[0] << NIBBLE_BITS) | pair[1]).collect())
+    Some(digits.chunks(DIGITS_PER_BYTE).map(|pair| (pair[0] << NIBBLE_BITS) | pair[1]).collect())
 }

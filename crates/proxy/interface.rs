@@ -1,6 +1,4 @@
-//! A SOCKS5 proxy on an ephemeral loopback port that forwards every byte unchanged and reports what it saw.
-//!
-//! It carries TCP with CONNECT and UDP with UDP ASSOCIATE, and reads TLS and QUIC with the secrets in a key log.
+//! A loopback SOCKS5 proxy that forwards TCP and UDP unchanged, reporting what it reads with a key log's secrets.
 //!
 //! https://www.rfc-editor.org/rfc/rfc1928
 
@@ -12,16 +10,14 @@ use simple_httptap_sink::Sink;
 
 /// A maker of proxies.
 pub trait Proxy {
-    /// The authority whose certificates the proxy presents when it intercepts.
+    /// The certificate issuer used when intercepting.
     type Authority: Authority;
-    /// The destination of every event.
     type Sink: Sink;
-    /// The key log the proxy reads secrets from, and writes them to when it intercepts.
+    /// The source of secrets, and their sink when intercepting.
     type Keylog: Keylog;
-    /// A proxy bound to its port.
     type Listener: Listener;
 
-    /// Binds a loopback port the system picks; connections go out through the upstream if given.
+    /// Binds a system-picked loopback port; connections leave via any upstream.
     fn bind(
         &self,
         signer: <Self::Authority as Authority>::Signer,
@@ -32,27 +28,25 @@ pub trait Proxy {
     ) -> std::io::Result<Self::Listener>;
 }
 
-/// A proxy bound to its port and ready to serve.
+/// A bound proxy, ready to serve.
 pub trait Listener: Send + 'static {
     /// Returns the address SOCKS5 clients connect to.
     fn local_address(&self) -> SocketAddr;
 
-    /// Writes that it is listening, then serves clients until the sink fails.
+    /// Writes that it listens, then serves until the sink fails.
     fn serve(self) -> std::io::Result<()>;
 }
 
-/// Where the secrets that decrypt TLS and QUIC come from.
+/// The source of the secrets that decrypt TLS and QUIC.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
-    /// The client logs its own secrets, and every byte passes through untouched, exactly as the client sent it.
+    /// The client logs its secrets and every byte passes untouched.
     PassThrough,
-    /// The proxy ends TLS with its own certificates and logs the secrets of its own connections to servers.
-    ///
-    /// The server then sees the proxy's TLS, not the client's.
+    /// The proxy ends TLS with its certificates; servers see its TLS, whose secrets it logs.
     Intercept,
 }
 
-/// A SOCKS5 proxy to go out through, as `host:port`, with any user name and password it asks for.
+/// An upstream SOCKS5 proxy, as `host:port`, with any credentials it needs.
 ///
 /// https://www.rfc-editor.org/rfc/rfc1929
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,7 +55,7 @@ pub struct Upstream {
     pub credentials: Option<Credentials>,
 }
 
-/// A user name and password for SOCKS5's username/password authentication.
+/// A user name and password for SOCKS5 authentication.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Credentials {
     pub user: String,

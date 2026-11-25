@@ -18,8 +18,12 @@ use tokio::sync::mpsc;
 use crate::Shared;
 
 /// How often a connection that waits for a secret looks in the key log again.
+///
+/// https://docs.rs/tokio/latest/tokio/time/fn.timeout.html
 const RETRY_INTERVAL: Duration = Duration::from_millis(25);
 /// How long a connection waits for a secret before it gives up and reports its bytes as they are.
+///
+/// https://doc.rust-lang.org/std/time/struct.Instant.html#method.elapsed
 const SECRET_WAIT: Duration = Duration::from_secs(5);
 /// The record type a TLS connection starts with, a handshake.
 ///
@@ -30,8 +34,12 @@ const TLS_HANDSHAKE: u8 = 22;
 /// https://www.rfc-editor.org/rfc/rfc9000#section-17.2
 const QUIC_LONG_HEADER: u8 = 0x80;
 /// The bit set in every QUIC version 1 and 2 packet.
+///
+/// https://www.rfc-editor.org/rfc/rfc9000#section-17.2
 const QUIC_FIXED_BIT: u8 = 0x40;
 /// The bytes of a long header's first byte and version.
+///
+/// https://www.rfc-editor.org/rfc/rfc9000#section-17.2
 const QUIC_VERSION_END: usize = 5;
 /// The QUIC versions this proxy decrypts: 1, and 2.
 ///
@@ -50,12 +58,12 @@ const HTTP2: &[u8] = b"h2";
 /// The application protocol name of HTTP/3.
 ///
 /// https://www.rfc-editor.org/rfc/rfc9114#section-3.1
-const HTTP3: &[u8] = b"h3";
+pub(crate) const HTTP3: &[u8] = b"h3";
 
 /// A copy of bytes one side sent: a run of a TCP stream, or one UDP datagram.
 pub(crate) type Copy = (Direction, Vec<u8>);
 
-/// How a connection's bytes are read once its first bytes showed what they are.
+/// The way a connection's bytes are read, settled by its first bytes.
 enum Reading {
     /// Nothing came yet, so it is not known.
     Undecided,
@@ -65,7 +73,7 @@ enum Reading {
     Encrypted { decrypter: Box<dyn ConnectionDecrypter>, decoder: Option<Box<dyn ConnectionDecoder>> },
 }
 
-/// One connection being watched: how its bytes are read, and whether its opened event was written.
+/// The watcher of one connection, holding how its bytes are read and whether its opened event was written.
 pub(crate) struct Watch {
     shared: Arc<Shared>,
     connection: Connection,
@@ -83,7 +91,7 @@ impl Watch {
     pub(crate) async fn run(mut self, mut copies: mpsc::UnboundedReceiver<Copy>) {
         let mut waiting_since: Option<Instant> = None;
         loop {
-            let next = if self.is_waiting() {
+            let next = if self.awaits_secret() {
                 tokio::time::timeout(RETRY_INTERVAL, copies.recv()).await.ok()
             } else {
                 Some(copies.recv().await)
@@ -93,7 +101,7 @@ impl Watch {
                 Some(None) => break,
                 None => self.retry(),
             }
-            if !self.is_waiting() {
+            if !self.awaits_secret() {
                 waiting_since = None;
             } else if waiting_since.get_or_insert_with(Instant::now).elapsed() > SECRET_WAIT {
                 self.give_up();
@@ -104,7 +112,7 @@ impl Watch {
     }
 
     /// Returns whether the decrypter holds bytes for want of a secret.
-    fn is_waiting(&self) -> bool {
+    fn awaits_secret(&self) -> bool {
         matches!(&self.reading, Reading::Encrypted { decrypter, .. } if decrypter.is_waiting())
     }
 
@@ -194,7 +202,9 @@ impl Watch {
                 Decrypted::Plain { direction, stream, bytes, fin } => {
                     self.open(true, None);
                     let decoded = match (&mut self.reading, stream) {
-                        (Reading::Encrypted { decoder: Some(decoder), .. }, Some(stream)) => decoder.decode_stream(direction, stream, &bytes, fin),
+                        (Reading::Encrypted { decoder: Some(decoder), .. }, Some(stream)) => {
+                            decoder.decode_stream(direction, stream, &bytes, fin)
+                        }
                         (Reading::Encrypted { decoder: Some(decoder), .. }, None) => decoder.decode(direction, &bytes),
                         _ => vec![Decoded::Unparsed { direction, bytes }],
                     };
@@ -217,7 +227,9 @@ impl Watch {
     /// TLS that agreed on no protocol is taken for HTTP/1, as clients that send no ALPN speak it.
     fn choose_decoder(&mut self, protocol: Option<&[u8]>) {
         let transport = self.connection.transport;
-        let Reading::Encrypted { decoder, .. } = &mut self.reading else { return };
+        let Reading::Encrypted { decoder, .. } = &mut self.reading else {
+            return;
+        };
         if decoder.is_some() {
             return;
         }
@@ -251,7 +263,9 @@ impl Watch {
 
 /// Returns whether a datagram is the first of a QUIC connection: long enough, with a long header of a known version.
 pub(crate) fn is_quic_start(datagram: &[u8]) -> bool {
-    let Some(&first) = datagram.first() else { return false };
+    let Some(&first) = datagram.first() else {
+        return false;
+    };
     datagram.len() >= QUIC_FIRST_DATAGRAM
         && first & (QUIC_LONG_HEADER | QUIC_FIXED_BIT) == QUIC_LONG_HEADER | QUIC_FIXED_BIT
         && datagram.get(1..QUIC_VERSION_END).is_some_and(|version| QUIC_VERSIONS.iter().any(|known| known == version))

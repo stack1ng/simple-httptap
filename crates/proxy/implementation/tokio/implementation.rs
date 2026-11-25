@@ -95,7 +95,7 @@ impl Listener for TokioListener {
     }
 }
 
-/// The state all connections of one proxy share: its signer, sink, key log, mode, upstream and TLS settings.
+/// The signer, sink, key log, mode, upstream and TLS settings that all of one proxy's connections share.
 pub(crate) struct Shared {
     signer: RcgenSigner,
     sink: NdJson,
@@ -112,7 +112,7 @@ pub(crate) struct Shared {
 
 impl std::fmt::Debug for Shared {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.debug_struct("Shared").field("mode", &self.mode).field("upstream", &self.upstream).finish_non_exhaustive()
+        formatter.debug_tuple(std::any::type_name::<Self>()).field(&self.mode).field(&self.upstream).finish()
     }
 }
 
@@ -133,12 +133,12 @@ fn client_config(provider: &Arc<CryptoProvider>, keys: Arc<FileKeys>) -> Result<
     Ok(config)
 }
 
-/// The rustls key log that records each secret in the proxy's key log.
+/// The adapter that hands each secret rustls logs to the proxy's key log file.
 struct KeyLogger(Arc<FileKeys>);
 
 impl std::fmt::Debug for KeyLogger {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str("KeyLogger")
+        formatter.write_str(std::any::type_name::<Self>())
     }
 }
 

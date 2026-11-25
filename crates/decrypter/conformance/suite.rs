@@ -2,18 +2,22 @@
 
 use simple_httptap_decoder::Direction;
 use simple_httptap_decrypter::{ConnectionDecrypter, Decrypted, Decrypter};
-use simple_httptap_keylog::{Keylog, Keys};
-use simple_httptap_keylog_file::FileKeylog;
+use simple_httptap_keylog::Keys;
 
 /// Bytes that are neither TLS records nor QUIC packets.
 const NOT_ENCRYPTED: &[u8] = b"GET / HTTP/1.1\r\nHost: example.com\r\n\r\n";
-/// The name of the empty key log file in each test's temporary folder.
-const FILE_NAME: &str = "keys.log";
 
-/// Returns an empty key log in a new temporary folder, which it keeps.
-fn empty_keys() -> impl Keys {
-    let file = tempfile::tempdir().expect("a temporary folder").keep().join(FILE_NAME);
-    FileKeylog.open(&file).expect("the key log opens")
+/// A key log that never holds a secret, forgetting whatever it is asked to record.
+struct NoKeys;
+
+impl Keys for NoKeys {
+    fn record(&self, _label: &str, _client_random: &[u8], _secret: &[u8]) -> std::io::Result<()> {
+        Ok(())
+    }
+
+    fn secret(&self, _label: &str, _client_random: &[u8]) -> Option<Vec<u8>> {
+        None
+    }
 }
 
 /// Returns every opaque byte the side sent, in order, checking nothing came out decrypted.
@@ -27,7 +31,9 @@ fn opaque_bytes(decrypted: Vec<Decrypted>, side: Direction) -> Vec<u8> {
             }
             Decrypted::Fault { direction, .. } => assert_eq!(direction, side),
             Decrypted::Agreed { .. } => {}
-            Decrypted::Plain { .. } => panic!("plaintext out of bytes that were never encrypted: {each:?}"),
+            Decrypted::Plain { .. } => {
+                panic!("plaintext out of bytes that were never encrypted: {each:?}")
+            }
         }
     }
     bytes
@@ -35,7 +41,7 @@ fn opaque_bytes(decrypted: Vec<Decrypted>, side: Direction) -> Vec<u8> {
 
 /// Checks that no bytes decrypt to nothing, and that a connection that saw nothing finishes with nothing.
 pub fn decrypts_nothing_from_no_bytes<T: Decrypter>(decrypter: T) {
-    let keys = empty_keys();
+    let keys = NoKeys;
     let mut connection = decrypter.start_connection();
     assert!(connection.retry(&keys).is_empty());
     assert!(!connection.is_waiting());
@@ -46,7 +52,7 @@ pub fn decrypts_nothing_from_no_bytes<T: Decrypter>(decrypter: T) {
 
 /// Checks that bytes of no encryption the decrypter knows come back whole and opaque, from the side that sent them.
 pub fn gives_back_what_is_not_its_protocol<T: Decrypter>(decrypter: T) {
-    let keys = empty_keys();
+    let keys = NoKeys;
     let mut connection = decrypter.start_connection();
     let mut decrypted = connection.decrypt(Direction::Client, NOT_ENCRYPTED, &keys);
     decrypted.extend(connection.retry(&keys));
@@ -57,7 +63,7 @@ pub fn gives_back_what_is_not_its_protocol<T: Decrypter>(decrypter: T) {
 
 /// Checks that a second finish returns nothing more than the first.
 pub fn finishes_once<T: Decrypter>(decrypter: T) {
-    let keys = empty_keys();
+    let keys = NoKeys;
     let mut connection = decrypter.start_connection();
     connection.decrypt(Direction::Server, NOT_ENCRYPTED, &keys);
     connection.finish();

@@ -8,20 +8,24 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use simple_httptap_redirector::{Capture, Program, Redirector};
 
-/// A path no program is at.
+/// An absolute path inside a folder that does not exist, so neither the system nor `PATH` finds a program there.
 const MISSING_PROGRAM: &str = "/nonexistent/simple-httptap/no-such-program";
-/// The exit code the test's program exits with.
+/// The exit code the test's program exits with, which no shell gives of its own accord.
+///
+/// https://pubs.opengroup.org/onlinepubs/9799919799/functions/exit.html
 const EXIT_CODE: i32 = 3;
+/// The shell that runs the test's program, and the flag that hands it a command.
+const SHELL: (&str, &str) = if cfg!(windows) { ("cmd", "/C") } else { ("sh", "-c") };
 /// A loopback address with no proxy behind it, which a program that sends nothing never reaches.
 const NO_PROXY: SocketAddr = SocketAddr::new(std::net::IpAddr::V4(Ipv4Addr::LOCALHOST), u16::MAX);
 
 /// Returns a program that exits with the exit code and sends nothing.
 fn exiting_program() -> Program {
-    let (shell, flag) = if cfg!(windows) { ("cmd", "/C") } else { ("sh", "-c") };
+    let (shell, flag) = SHELL;
     Program { path: shell.into(), arguments: vec![OsString::from(flag), OsString::from(format!("exit {EXIT_CODE}"))], environment: Vec::new() }
 }
 
-/// Checks that a program that is not there fails to start.
+/// Checks that launching a missing program returns an error rather than a capture.
 pub fn refuses_a_program_that_is_not_there<T: Redirector>(redirector: T) {
     let program = Program { path: MISSING_PROGRAM.into(), arguments: Vec::new(), environment: Vec::new() };
     assert!(redirector.launch(&program, NO_PROXY).is_err());

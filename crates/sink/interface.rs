@@ -22,8 +22,7 @@ pub enum Event {
 
 /// A connection through the proxy, numbered while it runs, with the target the client asked for.
 ///
-/// `tls` says whether the connection was TLS or QUIC, whose bytes are decrypted with the key log, and `protocol`
-/// is what its handshake agreed on, such as `h2` or `h3`.
+/// `tls` says whether it was TLS or QUIC, decrypted with the key log; `protocol` is what it agreed, such as `h2`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Connection {
     pub id: u64,
@@ -34,7 +33,7 @@ pub struct Connection {
     pub protocol: Option<String>,
 }
 
-/// The transport a connection's bytes went over: a TCP stream, or UDP datagrams, which is how QUIC goes.
+/// The transport a connection used: a TCP stream, or UDP datagrams, which QUIC uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Transport {
     Tcp,
