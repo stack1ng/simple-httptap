@@ -1,35 +1,35 @@
+// Adapted from mitmproxy_rs (MIT, see LICENSE-mitmproxy).
+
 import NetworkExtension
 import OSLog
-import SwiftProtobuf
 import SwiftUI
 import SystemExtensions
 
 let log = Logger(subsystem: "com.stack1ng.simplehttptap", category: "app")
 let networkExtensionIdentifier = "com.stack1ng.simplehttptap.redirector"
+/// The argument httptap starts the app with.
+let activateArgument = "--activate"
 
-/// Helper app to install the system extension and setup the transaprent proxy.
+/// The helper app that installs the system extension and starts the transparent proxy, then exits.
+///
+/// httptap runs it whenever the extension's control socket does not answer; it exits 0 once the proxy runs.
 @main
 struct App {
     static func main() async throws {
-        let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
-        log.debug("starting httptap redirector app \(version, privacy: .public) with \(CommandLine.arguments, privacy: .public)")
-        
-        if #unavailable(macOS 12.0) {
-            exitModal("This application only works on macOS 12 or above.")
+        guard CommandLine.arguments.contains(activateArgument) else {
+            exitModal("This helper lets httptap capture the programs it runs. httptap starts it when needed; it does nothing on its own.")
         }
-
-        let unixSocketPath = CommandLine.arguments.last!
-        if !unixSocketPath.starts(with: "/tmp/") {
-            exitModal(
-                "This helper application is used to redirect local traffic to httptap. It cannot be run standalone."
-            )
+        do {
+            try await SystemExtensionInstaller.run()
+            try await startProxy()
+        } catch {
+            FileHandle.standardError.write(Data("httptap redirector: \(error.localizedDescription)\n".utf8))
+            exit(1)
         }
-
-        try await SystemExtensionInstaller.run()
-        try await startProxy(unixSocketPath: unixSocketPath)
+        exit(0)
     }
-    
-    static func exitModal(_ message: String) {
+
+    static func exitModal(_ message: String) -> Never {
         let notification = NSAlert()
         notification.messageText = "httptap"
         notification.informativeText = message
@@ -39,26 +39,19 @@ struct App {
 }
 
 class SystemExtensionInstaller: NSObject, OSSystemExtensionRequestDelegate {
-    
     static func run() async throws {
-
-        let inst = SystemExtensionInstaller()
-
+        let installer = SystemExtensionInstaller()
         try await withCheckedThrowingContinuation { continuation in
-
-            inst.continuation = continuation
-
+            installer.continuation = continuation
             let request = OSSystemExtensionRequest.activationRequest(
                 forExtensionWithIdentifier: networkExtensionIdentifier,
                 queue: DispatchQueue.main
             )
-            request.delegate = inst
+            request.delegate = installer
             OSSystemExtensionManager.shared.submitRequest(request)
-            log.debug("system extension request submitted")
         }
-
     }
-    
+
     var continuation: CheckedContinuation<Void, Error>?
 
     func request(
@@ -66,58 +59,44 @@ class SystemExtensionInstaller: NSObject, OSSystemExtensionRequestDelegate {
         actionForReplacingExtension existing: OSSystemExtensionProperties,
         withExtension ext: OSSystemExtensionProperties
     ) -> OSSystemExtensionRequest.ReplacementAction {
-        log.debug("requesting to replace existing network extension \(existing.bundleShortVersion, privacy: .public) with \(ext.bundleShortVersion, privacy: .public)")
+        log.debug("replacing extension \(existing.bundleVersion, privacy: .public) with \(ext.bundleVersion, privacy: .public)")
         return .replace
     }
 
     func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
-        log.debug("requestNeedsUserApproval")
+        FileHandle.standardError.write(Data("httptap redirector: allow the httptap extension in System Settings → General → Login Items & Extensions → Network Extensions\n".utf8))
     }
 
     func request(_ request: OSSystemExtensionRequest, didFailWithError error: Error) {
-        log.debug("system extension install failed: \(error, privacy: .public)")
         continuation?.resume(throwing: error)
+        continuation = nil
     }
-    
-    func request(
-        _ request: OSSystemExtensionRequest,
-        didFinishWithResult result: OSSystemExtensionRequest.Result
-    ) {
-        log.debug("system extension install succeeded: {} \(result.rawValue, privacy: .public)")
+
+    func request(_ request: OSSystemExtensionRequest, didFinishWithResult result: OSSystemExtensionRequest.Result) {
         continuation?.resume()
+        continuation = nil
     }
 }
 
-func startProxy(unixSocketPath: String) async throws {
-    let savedManagers = try await NETransparentProxyManager.loadAllFromPreferences()
-    let manager =
-        savedManagers.first(where: { m in
-            (m.protocolConfiguration as? NETunnelProviderProtocol)?.providerBundleIdentifier
-                == networkExtensionIdentifier
-                && (!m.isEnabled || m.connection.status != NEVPNStatus.connected)
-        }) ?? NETransparentProxyManager()
+/// Saves the transparent proxy's configuration, enabled, and starts it.
+func startProxy() async throws {
+    let saved = try await NETransparentProxyManager.loadAllFromPreferences()
+    let manager = saved.first(where: { manager in
+        (manager.protocolConfiguration as? NETunnelProviderProtocol)?.providerBundleIdentifier == networkExtensionIdentifier
+    }) ?? NETransparentProxyManager()
 
     let providerProtocol = NETunnelProviderProtocol()
     providerProtocol.providerBundleIdentifier = networkExtensionIdentifier
-    providerProtocol.serverAddress = unixSocketPath
-    
-    /*
-    // NETransparentProxyManager does not support these properties and setting them causes silent failures.
-    providerProtocol.includeAllNetworks = true
-    providerProtocol.enforceRoutes = true
-    providerProtocol.excludeLocalNetworks = false
-    providerProtocol.excludeAPNs = false
-    providerProtocol.excludeCellularServices = false
-     */
+    providerProtocol.serverAddress = "httptap"
 
     manager.protocolConfiguration = providerProtocol
     manager.localizedDescription = "httptap"
     manager.isEnabled = true
 
     try await manager.saveToPreferences()
-    // https://stackoverflow.com/a/47569982/934719 - we need to call load again before starting the tunnel.
+    // https://stackoverflow.com/a/47569982/934719 - load again before starting the tunnel.
     try await manager.loadFromPreferences()
-    try manager.connection.startVPNTunnel()
-
-    log.debug("VPN initialized.")
+    if manager.connection.status != .connected && manager.connection.status != .connecting {
+        try manager.connection.startVPNTunnel()
+    }
 }

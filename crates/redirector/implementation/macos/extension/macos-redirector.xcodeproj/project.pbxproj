@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		CE08B8BC2ABD10EB00251C1C /* FlowExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE08B8BB2ABD10EB00251C1C /* FlowExtensions.swift */; };
-		CE08B8C02ABFB51900251C1C /* mitmproxy_ipc.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE08B8BF2ABFB51900251C1C /* mitmproxy_ipc.pb.swift */; };
 		CE3FDD7B2AAF1765007B7A3F /* ProcessInfoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3FDD7A2AAF1765007B7A3F /* ProcessInfoCache.swift */; };
 		CE415DF32AB33C6A0038F901 /* InterceptConf.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE415DF22AB33C6A0038F901 /* InterceptConf.swift */; };
 		CE7A86AF2A8CFB87009E0B82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE7A86AE2A8CFB87009E0B82 /* Assets.xcassets */; };
@@ -18,8 +17,6 @@
 		CE7A86CA2A8CFBAD009E0B82 /* com.stack1ng.simplehttptap.redirector.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = CE7A86BD2A8CFBAD009E0B82 /* com.stack1ng.simplehttptap.redirector.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CE870C102AAD2B4C00510CD1 /* libbsm.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE870C0B2AAD29B000510CD1 /* libbsm.tbd */; };
 		CE904BCE2A8E9B2600A7DF8A /* app.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC7D6762A8E2B2300E1A6E9 /* app.swift */; };
-		CE904BD22A8E9B6A00A7DF8A /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = CE904BD12A8E9B6A00A7DF8A /* SwiftProtobuf */; };
-		CE904BD42A8E9BD500A7DF8A /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = CE904BD32A8E9BD500A7DF8A /* SwiftProtobuf */; };
 		CE904BD92A8EA0C600A7DF8A /* utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE904BD72A8EA0C600A7DF8A /* utils.swift */; };
 /* End PBXBuildFile section */
 
@@ -49,7 +46,6 @@
 
 /* Begin PBXFileReference section */
 		CE08B8BB2ABD10EB00251C1C /* FlowExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowExtensions.swift; sourceTree = "<group>"; };
-		CE08B8BF2ABFB51900251C1C /* mitmproxy_ipc.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = mitmproxy_ipc.pb.swift; sourceTree = "<group>"; };
 		CE3FDD7A2AAF1765007B7A3F /* ProcessInfoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessInfoCache.swift; sourceTree = "<group>"; };
 		CE415DF22AB33C6A0038F901 /* InterceptConf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterceptConf.swift; sourceTree = "<group>"; };
 		CE7A86A72A8CFB86009E0B82 /* httptap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "httptap.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,7 +71,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE904BD22A8E9B6A00A7DF8A /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,7 +79,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE7A86C02A8CFBAD009E0B82 /* NetworkExtension.framework in Frameworks */,
-				CE904BD42A8E9BD500A7DF8A /* SwiftProtobuf in Frameworks */,
 				CE870C102AAD2B4C00510CD1 /* libbsm.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -152,7 +146,6 @@
 		CE904BD62A8EA0B300A7DF8A /* ipc */ = {
 			isa = PBXGroup;
 			children = (
-				CE08B8BF2ABFB51900251C1C /* mitmproxy_ipc.pb.swift */,
 				CE904BD72A8EA0C600A7DF8A /* utils.swift */,
 			);
 			path = ipc;
@@ -176,9 +169,6 @@
 				CE7A86C92A8CFBAD009E0B82 /* PBXTargetDependency */,
 			);
 			name = "macos-redirector";
-			packageProductDependencies = (
-				CE904BD12A8E9B6A00A7DF8A /* SwiftProtobuf */,
-			);
 			productName = "macos-redirector";
 			productReference = CE7A86A72A8CFB86009E0B82 /* httptap.app */;
 			productType = "com.apple.product-type.application";
@@ -196,9 +186,6 @@
 			dependencies = (
 			);
 			name = "network-extension";
-			packageProductDependencies = (
-				CE904BD32A8E9BD500A7DF8A /* SwiftProtobuf */,
-			);
 			productName = "network-extension";
 			productReference = CE7A86BD2A8CFBAD009E0B82 /* com.stack1ng.simplehttptap.redirector.systemextension */;
 			productType = "com.apple.product-type.system-extension";
@@ -230,9 +217,6 @@
 				Base,
 			);
 			mainGroup = CE7A869E2A8CFB86009E0B82;
-			packageReferences = (
-				CE904BD02A8E9B6A00A7DF8A /* XCRemoteSwiftPackageReference "swift-protobuf" */,
-			);
 			productRefGroup = CE7A86A82A8CFB86009E0B82 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -278,7 +262,6 @@
 				CE3FDD7B2AAF1765007B7A3F /* ProcessInfoCache.swift in Sources */,
 				CE415DF32AB33C6A0038F901 /* InterceptConf.swift in Sources */,
 				CE08B8BC2ABD10EB00251C1C /* FlowExtensions.swift in Sources */,
-				CE08B8C02ABFB51900251C1C /* mitmproxy_ipc.pb.swift in Sources */,
 				CE7A86C32A8CFBAD009E0B82 /* TransparentProxyProvider.swift in Sources */,
 				CE904BD92A8EA0C600A7DF8A /* utils.swift in Sources */,
 			);
@@ -422,7 +405,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 526CBF5SXU;
@@ -437,7 +420,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.stack1ng.simplehttptap";
 				PRODUCT_NAME = "httptap";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -455,7 +438,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 526CBF5SXU;
@@ -470,7 +453,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.stack1ng.simplehttptap";
 				PRODUCT_NAME = "httptap";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -484,7 +467,7 @@
 				CODE_SIGN_ENTITLEMENTS = "network-extension/network_extension.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 526CBF5SXU;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 526CBF5SXU;
@@ -498,7 +481,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.stack1ng.simplehttptap.redirector";
 				PRODUCT_NAME = "$(inherited)";
 				SKIP_INSTALL = YES;
@@ -514,7 +497,7 @@
 				CODE_SIGN_ENTITLEMENTS = "network-extension/network_extension.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 526CBF5SXU;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 526CBF5SXU;
@@ -528,7 +511,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.stack1ng.simplehttptap.redirector";
 				PRODUCT_NAME = "$(inherited)";
 				SKIP_INSTALL = YES;
@@ -570,29 +553,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		CE904BD02A8E9B6A00A7DF8A /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-protobuf.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCSwiftPackageProductDependency section */
-		CE904BD12A8E9B6A00A7DF8A /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CE904BD02A8E9B6A00A7DF8A /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
-		CE904BD32A8E9BD500A7DF8A /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CE904BD02A8E9B6A00A7DF8A /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CE7A869F2A8CFB86009E0B82 /* Project object */;
 }

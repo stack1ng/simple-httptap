@@ -1240,6 +1240,7 @@ name = "simple-httptap-proxy-conformance"
 version = "0.0.3"
 dependencies = [
  "simple-httptap-authority",
+ "simple-httptap-keylog",
  "simple-httptap-proxy",
  "tempfile",
 ]
@@ -1248,10 +1249,8 @@ dependencies = [
 name = "simple-httptap-proxy-tokio"
 version = "0.0.3"
 dependencies = [
- "base64 0.23.1",
  "directories",
  "futures-util",
- "http",
  "percent-encoding",
  "rustls-platform-verifier",
  "simple-httptap-authority",
@@ -1259,8 +1258,18 @@ dependencies = [
  "simple-httptap-decoder",
  "simple-httptap-decoder-http1",
  "simple-httptap-decoder-http2",
+ "simple-httptap-decoder-http3",
+ "simple-httptap-decrypter",
+ "simple-httptap-decrypter-quic",
+ "simple-httptap-decrypter-tls",
+ "simple-httptap-keylog",
+ "simple-httptap-keylog-file",
  "simple-httptap-proxy",
  "simple-httptap-proxy-conformance",
+ "simple-httptap-redirector",
+ "simple-httptap-redirector-linux",
+ "simple-httptap-redirector-macos",
+ "simple-httptap-redirector-windows",
  "simple-httptap-sink",
  "simple-httptap-sink-ndjson",
  "simple-httptap-trust",
@@ -1295,6 +1304,7 @@ dependencies = [
 name = "simple-httptap-redirector-macos"
 version = "0.0.3"
 dependencies = [
+ "libc",
  "simple-httptap-redirector",
  "simple-httptap-redirector-conformance",
 ]
