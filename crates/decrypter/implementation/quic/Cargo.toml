@@ -1,0 +1,29 @@
+[package]
+name = "simple-httptap-decrypter-quic"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[dependencies]
+ring = "0.17.14"
+simple-httptap-decoder = { version = "0.1.0", path = "../../../decoder" }
+simple-httptap-keylog = { version = "0.1.0", path = "../../../keylog" }
+simple-httptap-decrypter = { version = "0.1.0", path = "../.." }
+
+[dev-dependencies]
+quinn = { version = "0.11.12", default-features = false, features = ["runtime-tokio", "rustls-ring"] }
+rcgen = { version = "0.14.10", default-features = false, features = ["ring", "pem"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+simple-httptap-decrypter-conformance = { path = "../../conformance" }
+simple-httptap-keylog-file = { version = "0.1.0", path = "../../../keylog/implementation/file" }
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["macros", "net", "rt", "sync", "time"] }
+
+[lints]
+workspace = true

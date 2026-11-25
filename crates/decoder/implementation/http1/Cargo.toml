@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-decoder-http1"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -9,14 +9,14 @@ path = "implementation.rs"
 
 [[test]]
 name = "conformance"
-path = "conformance.rs"
+path = "conformance_run.rs"
 
 [lints]
 workspace = true
 
 [dependencies]
 http = "1.5.0"
-simple-httptap-decoder = { path = "../.." }
+simple-httptap-decoder = { version = "0.1.0", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-decoder-conformance = { path = "../../conformance" }

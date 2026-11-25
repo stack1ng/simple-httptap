@@ -1,15 +1,16 @@
 [package]
 name = "simple-httptap-proxy-conformance"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
 [lib]
-path = "conformance.rs"
+path = "suite.rs"
 
 [dependencies]
-simple-httptap-authority = { version = "0.0.3", path = "../../authority" }
-simple-httptap-proxy = { path = ".." }
+simple-httptap-authority = { version = "0.1.0", path = "../../authority" }
+simple-httptap-keylog = { version = "0.1.0", path = "../../keylog" }
+simple-httptap-proxy = { version = "0.1.0", path = ".." }
 tempfile = "3.27.0"
 
 [lints]

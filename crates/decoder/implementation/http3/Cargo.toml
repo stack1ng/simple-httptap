@@ -1,0 +1,21 @@
+[package]
+name = "simple-httptap-decoder-http3"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[dependencies]
+loona-hpack = "0.4.3"
+simple-httptap-decoder = { version = "0.1.0", path = "../.." }
+
+[dev-dependencies]
+simple-httptap-decoder-conformance = { path = "../../conformance" }
+
+[lints]
+workspace = true

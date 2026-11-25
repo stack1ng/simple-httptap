@@ -1,14 +1,14 @@
 [package]
 name = "simple-httptap-decoder-conformance"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
 [lib]
-path = "conformance.rs"
+path = "suite.rs"
 
 [dependencies]
-simple-httptap-decoder = { path = ".." }
+simple-httptap-decoder = { version = "0.1.0", path = ".." }
 
 [lints]
 workspace = true

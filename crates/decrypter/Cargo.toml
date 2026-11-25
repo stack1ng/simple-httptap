@@ -1,0 +1,14 @@
+[package]
+name = "simple-httptap-decrypter"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "interface.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+simple-httptap-decoder = { version = "0.1.0", path = "../decoder" }
+simple-httptap-keylog = { version = "0.1.0", path = "../keylog" }

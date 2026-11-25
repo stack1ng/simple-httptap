@@ -1,0 +1,20 @@
+[package]
+name = "simple-httptap-keylog-file"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[dependencies]
+simple-httptap-keylog = { version = "0.1.0", path = "../.." }
+
+[dev-dependencies]
+simple-httptap-keylog-conformance = { path = "../../conformance" }
+
+[lints]
+workspace = true

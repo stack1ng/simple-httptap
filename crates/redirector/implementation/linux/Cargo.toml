@@ -1,0 +1,29 @@
+[package]
+name = "simple-httptap-redirector-linux"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[[test]]
+name = "redirection"
+path = "redirection_test.rs"
+
+[dependencies]
+simple-httptap-redirector = { version = "0.1.0", path = "../.." }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2.191"
+smoltcp = { version = "0.14.0", default-features = false, features = ["std", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp"] }
+tokio = { version = "1.54.1", features = ["rt", "net", "io-util", "sync", "time", "macros"] }
+
+[dev-dependencies]
+simple-httptap-redirector-conformance = { path = "../../conformance" }
+
+[lints]
+workspace = true

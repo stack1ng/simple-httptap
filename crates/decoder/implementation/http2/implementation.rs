@@ -323,7 +323,7 @@ impl Reader {
         if let Some(promised) = block.promised {
             decoded.push(Decoded::Message(Message {
                 kind: Kind::Request,
-                stream: Some(promised),
+                stream: Some(u64::from(promised)),
                 start_line: None,
                 fields,
                 body: Vec::new(),
@@ -341,7 +341,7 @@ impl Reader {
                         Direction::Client => Kind::Request,
                         Direction::Server => Kind::Response,
                     },
-                    stream: Some(block.stream),
+                    stream: Some(u64::from(block.stream)),
                     start_line: None,
                     fields,
                     body: Vec::new(),

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/authority","crates/authority/conformance","crates/authority/implementation/rcgen","crates/decoder","crates/decoder/conformance","crates/decoder/implementation/http1","crates/decoder/implementation/http2","crates/proxy","crates/proxy/conformance","crates/proxy/implementation/tokio","crates/sink","crates/sink/conformance","crates/sink/implementation/ndjson","crates/trust","crates/trust/conformance","crates/trust/implementation/system"]
+members = ["crates/authority","crates/authority/conformance","crates/authority/implementation/rcgen","crates/decoder","crates/decoder/conformance","crates/decoder/implementation/http1","crates/decoder/implementation/http2","crates/proxy","crates/proxy/conformance","crates/proxy/implementation/tokio","crates/sink","crates/sink/conformance","crates/sink/implementation/ndjson","crates/trust","crates/trust/conformance","crates/trust/implementation/system", "crates/keylog", "crates/keylog/conformance", "crates/keylog/implementation/file", "crates/decrypter", "crates/decrypter/conformance", "crates/decrypter/implementation/tls", "crates/decrypter/implementation/quic", "crates/decoder/implementation/http3", "crates/redirector", "crates/redirector/conformance", "crates/redirector/implementation/macos", "crates/redirector/implementation/linux", "crates/redirector/implementation/windows"]
 
 [workspace.lints]
 

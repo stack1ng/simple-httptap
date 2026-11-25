@@ -1,6 +1,6 @@
 [package]
 name = "simple-httptap-sink-ndjson"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
 publish = false
 
@@ -9,7 +9,7 @@ path = "implementation.rs"
 
 [[test]]
 name = "conformance"
-path = "conformance.rs"
+path = "conformance_run.rs"
 
 [lints]
 workspace = true
@@ -18,8 +18,8 @@ workspace = true
 base64 = "0.23.1"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order"] }
-simple-httptap-decoder = { version = "0.0.3", path = "../../../decoder" }
-simple-httptap-sink = { path = "../.." }
+simple-httptap-decoder = { version = "0.1.0", path = "../../../decoder" }
+simple-httptap-sink = { version = "0.1.0", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-sink-conformance = { path = "../../conformance" }

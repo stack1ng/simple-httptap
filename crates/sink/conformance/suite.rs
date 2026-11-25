@@ -3,7 +3,7 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
 use simple_httptap_decoder::{Decoded, Direction, Field, Kind, Message};
-use simple_httptap_sink::{Connection, Event, Sink};
+use simple_httptap_sink::{Connection, Event, Sink, Transport};
 
 /// A start line of a request.
 const START_LINE: &[u8] = b"GET / HTTP/1.1";
@@ -37,6 +37,7 @@ fn every_kind_of_event() -> Vec<Event> {
             id,
             client: address,
             target: TARGET.to_owned(),
+            transport: Transport::Udp,
             tls: true,
             protocol: Some(PROTOCOL.to_owned()),
         }),
@@ -45,6 +46,7 @@ fn every_kind_of_event() -> Vec<Event> {
         Event::Decoded { connection: id, decoded: Decoded::Fault { direction: Direction::Client, detail: DETAIL.to_owned() } },
         Event::Refused { connection: id, detail: DETAIL.to_owned() },
         Event::Closed { connection: id },
+        Event::Failed { detail: DETAIL.to_owned() },
     ]
 }
 

@@ -27,13 +27,21 @@ jobs:
       - run: cargo build --locked -p simple-httptap-proxy-tokio
       - name: httptap trust, with sudo asked for by httptap itself
         run: ./target/debug/httptap trust
-      - name: HTTPS through httptap with nothing but the system's trust
+      # Ubuntu's runners restrict unprivileged user namespaces, so httptap runs under sudo, and the program it
+      # starts runs as the runner's user again.
+      - name: Intercepted HTTPS with nothing but the system's trust
         run: |
-          ./target/debug/httptap > tap.jsonl 2> tap.err &
-          for i in $(seq 50); do [ -s tap.jsonl ] && break; sleep 0.1; done
-          ADDR=$(head -1 tap.jsonl | jq -r .address)
-          curl -sS --fail -x "http://$ADDR" -o /dev/null https://example.com
-          sleep 1
+          sudo --preserve-env=HOME,XDG_DATA_HOME ./target/debug/httptap \
+            sh -c 'test "$(id -u)" = "'"$(id -u)"'" && curl -sS --fail -o /dev/null https://example.com' > tap.jsonl 2> tap.err
           cat tap.err
           ! grep -q "not trusted" tap.err
-          grep -q '"event":"response"' tap.jsonl
+          jq -e 'select(.event == "opened" and .tls and .transport == "tcp")' tap.jsonl
+          jq -e 'select(.event == "response" and (.headers | map(.[0]) | index(":status")))' tap.jsonl
+      - name: HTTPS decrypted with curl's own key log, its bytes untouched
+        run: |
+          sudo --preserve-env=HOME,XDG_DATA_HOME SSLKEYLOGFILE="$RUNNER_TEMP/keys.log" ./target/debug/httptap \
+            curl -sS --fail --http1.1 -o /dev/null https://example.com > tap.jsonl 2> tap.err
+          cat tap.err
+          grep -q "passes untouched" tap.err
+          jq -e 'select(.event == "request" and (.start_line | startswith("GET / HTTP/1.1")))' tap.jsonl
+          jq -e 'select(.event == "response" and (.start_line | startswith("HTTP/1.1 200")))' tap.jsonl

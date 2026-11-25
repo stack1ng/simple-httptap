@@ -32,6 +32,25 @@ pub fn returns_every_byte_of_what_is_no_http<T: Decoder>(decoder: T) {
     assert_eq!(unparsed, NOT_HTTP);
 }
 
+/// Checks that bytes that are no HTTP on a stream of the transport's own come out again whole, unparsed.
+pub fn returns_every_byte_of_what_is_no_http_on_a_stream<T: Decoder>(decoder: T) {
+    let mut connection = decoder.start_connection();
+    let mut decoded = connection.decode_stream(Direction::Client, u64::MIN, NOT_HTTP, true);
+    decoded.extend(connection.finish());
+    let mut unparsed = Vec::new();
+    for each in decoded {
+        match each {
+            Decoded::Unparsed { direction, bytes } => {
+                assert_eq!(direction, Direction::Client);
+                unparsed.extend(bytes);
+            }
+            Decoded::Fault { direction, .. } => assert_eq!(direction, Direction::Client),
+            Decoded::Message(message) => assert!(!message.complete, "no HTTP decoded as a whole message: {message:?}"),
+        }
+    }
+    assert_eq!(unparsed, NOT_HTTP);
+}
+
 /// Checks that a second finish returns nothing more than the first.
 pub fn finishes_once<T: Decoder>(decoder: T) {
     let mut connection = decoder.start_connection();
@@ -54,6 +73,11 @@ macro_rules! tests {
         #[test]
         fn returns_every_byte_of_what_is_no_http() {
             $crate::returns_every_byte_of_what_is_no_http($value);
+        }
+
+        #[test]
+        fn returns_every_byte_of_what_is_no_http_on_a_stream() {
+            $crate::returns_every_byte_of_what_is_no_http_on_a_stream($value);
         }
 
         #[test]
