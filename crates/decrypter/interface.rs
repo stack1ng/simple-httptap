@@ -13,10 +13,10 @@ pub trait Decrypter {
 /// A connection's decrypter, which returns every byte once, decrypted or as sent.
 pub trait ConnectionDecrypter: Send + 'static {
     /// Reads a side's next stream bytes or datagram, returning what it decrypts.
-    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &dyn Keys) -> Vec<Decrypted>;
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &impl Keys) -> Vec<Decrypted>;
 
     /// Returns held bytes the key log now decrypts.
-    fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted>;
+    fn retry(&mut self, keys: &impl Keys) -> Vec<Decrypted>;
 
     /// Returns whether `retry` may give more.
     fn awaits_secret(&self) -> bool;

@@ -34,11 +34,11 @@ impl Decrypter for Quic {
 pub struct QuicConnection(Connection);
 
 impl ConnectionDecrypter for QuicConnection {
-    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &dyn Keys) -> Vec<Decrypted> {
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &impl Keys) -> Vec<Decrypted> {
         self.0.decrypt(direction, bytes, keys)
     }
 
-    fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted> {
+    fn retry(&mut self, keys: &impl Keys) -> Vec<Decrypted> {
         self.0.retry(keys)
     }
 
@@ -1093,7 +1093,7 @@ struct Connection {
 
 impl Connection {
     /// Reads one datagram after those it holds and returns what they gave.
-    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &dyn Keys) -> Vec<Decrypted> {
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &impl Keys) -> Vec<Decrypted> {
         let mut out = Vec::new();
         if self.finished || bytes.is_empty() {
             return out;
@@ -1111,7 +1111,7 @@ impl Connection {
     }
 
     /// Tries the datagrams it holds again and returns what they gave.
-    fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted> {
+    fn retry(&mut self, keys: &impl Keys) -> Vec<Decrypted> {
         let mut out = Vec::new();
         if !self.finished {
             self.absent.clear();

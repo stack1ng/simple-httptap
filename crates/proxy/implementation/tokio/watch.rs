@@ -10,8 +10,9 @@ use simple_httptap_decoder_http1::Http1;
 use simple_httptap_decoder_http2::Http2;
 use simple_httptap_decoder_http3::Http3;
 use simple_httptap_decrypter::{ConnectionDecrypter, Decrypted, Decrypter};
-use simple_httptap_decrypter_quic::Quic;
-use simple_httptap_decrypter_tls::Tls;
+use simple_httptap_decrypter_quic::{Quic, QuicConnection};
+use simple_httptap_decrypter_tls::{Tls, TlsConnection};
+use simple_httptap_keylog_file::FileKeys;
 use simple_httptap_sink::{Connection, Event, Transport};
 use tokio::sync::mpsc;
 
@@ -70,7 +71,55 @@ enum Reading {
     /// Bytes that are no encryption this proxy reads, decoded straight away if a decoder knows them.
     Clear(Option<Box<dyn ConnectionDecoder>>),
     /// TLS or QUIC, decrypted first, then decoded once the handshake agreed on a protocol a decoder knows.
-    Encrypted { decrypter: Box<dyn ConnectionDecrypter>, decoder: Option<Box<dyn ConnectionDecoder>> },
+    Encrypted { decrypter: Decrypting, decoder: Option<Box<dyn ConnectionDecoder>> },
+}
+
+/// The decrypter of a TLS connection or of a QUIC one, whichever the connection's first bytes started.
+enum Decrypting {
+    Tls(Box<TlsConnection>),
+    Quic(Box<QuicConnection>),
+}
+
+impl Decrypting {
+    /// Returns what the bytes one side sent decrypt to, with the secrets in the key log.
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &FileKeys) -> Vec<Decrypted> {
+        match self {
+            Self::Tls(connection) => connection.decrypt(direction, bytes, keys),
+            Self::Quic(connection) => connection.decrypt(direction, bytes, keys),
+        }
+    }
+
+    /// Returns what held bytes the key log's secrets now decrypt.
+    fn retry(&mut self, keys: &FileKeys) -> Vec<Decrypted> {
+        match self {
+            Self::Tls(connection) => connection.retry(keys),
+            Self::Quic(connection) => connection.retry(keys),
+        }
+    }
+
+    /// Returns whether `retry` may give more.
+    fn awaits_secret(&self) -> bool {
+        match self {
+            Self::Tls(connection) => connection.awaits_secret(),
+            Self::Quic(connection) => connection.awaits_secret(),
+        }
+    }
+
+    /// Stops waiting for secrets, returning held bytes opaque.
+    fn give_up(&mut self) -> Vec<Decrypted> {
+        match self {
+            Self::Tls(connection) => connection.give_up(),
+            Self::Quic(connection) => connection.give_up(),
+        }
+    }
+
+    /// Returns what is left once both sides closed.
+    fn finish(&mut self) -> Vec<Decrypted> {
+        match self {
+            Self::Tls(connection) => connection.finish(),
+            Self::Quic(connection) => connection.finish(),
+        }
+    }
 }
 
 /// The watcher of one connection, holding how its bytes are read and whether its opened event was written.
@@ -143,12 +192,12 @@ impl Watch {
         let first = bytes.first().copied().unwrap_or_default();
         match self.connection.transport {
             Transport::Tcp if direction == Direction::Client && first == TLS_HANDSHAKE => {
-                Reading::Encrypted { decrypter: Box::new(Tls.start_connection()), decoder: None }
+                Reading::Encrypted { decrypter: Decrypting::Tls(Box::new(Tls.start_connection())), decoder: None }
             }
             Transport::Tcp if bytes.starts_with(HTTP2_PREFACE) => Reading::Clear(Some(Box::new(Http2.start_connection()))),
             Transport::Tcp => Reading::Clear(Some(Box::new(Http1.start_connection()))),
             Transport::Udp if direction == Direction::Client && is_quic_start(bytes) => {
-                Reading::Encrypted { decrypter: Box::new(Quic.start_connection()), decoder: None }
+                Reading::Encrypted { decrypter: Decrypting::Quic(Box::new(Quic.start_connection())), decoder: None }
             }
             Transport::Udp => Reading::Clear(None),
         }

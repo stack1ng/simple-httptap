@@ -38,11 +38,11 @@ impl Decrypter for Tls {
 pub struct TlsConnection(Reader);
 
 impl ConnectionDecrypter for TlsConnection {
-    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &dyn Keys) -> Vec<Decrypted> {
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &impl Keys) -> Vec<Decrypted> {
         self.0.decrypt(direction, bytes, keys)
     }
 
-    fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted> {
+    fn retry(&mut self, keys: &impl Keys) -> Vec<Decrypted> {
         self.0.retry(keys)
     }
 
@@ -70,7 +70,7 @@ struct Reader {
 
 impl Reader {
     /// Reads what one side sent next, after which nothing comes out once finished.
-    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &dyn Keys) -> Vec<Decrypted> {
+    fn decrypt(&mut self, direction: Direction, bytes: &[u8], keys: &impl Keys) -> Vec<Decrypted> {
         if self.finished || bytes.is_empty() {
             return Vec::new();
         }
@@ -80,7 +80,7 @@ impl Reader {
     }
 
     /// Reads again what both sides hold, now that the key log may have more secrets.
-    fn retry(&mut self, keys: &dyn Keys) -> Vec<Decrypted> {
+    fn retry(&mut self, keys: &impl Keys) -> Vec<Decrypted> {
         if self.finished {
             return Vec::new();
         }
@@ -2117,7 +2117,7 @@ mod tests {
     fn feed(
         connection: &mut TlsConnection,
         flights: &[(Direction, Vec<u8>)],
-        keys: &dyn Keys,
+        keys: &impl Keys,
         order: Order,
         seed: u64,
     ) -> Vec<Decrypted> {
