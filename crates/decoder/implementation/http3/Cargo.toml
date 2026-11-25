@@ -11,6 +11,7 @@ name = "conformance"
 path = "conformance_run.rs"
 
 [dependencies]
+loona-hpack = "0.4.3"
 simple-httptap-decoder = { version = "0.0.3", path = "../.." }
 
 [dev-dependencies]
