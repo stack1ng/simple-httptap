@@ -40,9 +40,6 @@ simple-httptap-keylog = { version = "0.0.3", path = "../../../keylog" }
 simple-httptap-keylog-file = { version = "0.0.3", path = "../../../keylog/implementation/file" }
 simple-httptap-proxy = { version = "0.0.3", path = "../.." }
 simple-httptap-redirector = { version = "0.0.3", path = "../../../redirector" }
-simple-httptap-redirector-linux = { version = "0.0.3", path = "../../../redirector/implementation/linux" }
-simple-httptap-redirector-macos = { version = "0.0.3", path = "../../../redirector/implementation/macos" }
-simple-httptap-redirector-windows = { version = "0.0.3", path = "../../../redirector/implementation/windows" }
 simple-httptap-sink = { version = "0.0.3", path = "../../../sink" }
 simple-httptap-sink-ndjson = { version = "0.0.3", path = "../../../sink/implementation/ndjson" }
 simple-httptap-trust = { version = "0.0.3", path = "../../../trust" }
@@ -51,6 +48,15 @@ tokio = { version = "1.54.1", features = ["rt-multi-thread", "net", "io-util", "
 tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring", "logging", "tls12"] }
 tokio-util = { version = "0.7.20", features = ["io"] }
 url = "2.5.9"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+simple-httptap-redirector-linux = { version = "0.0.3", path = "../../../redirector/implementation/linux" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+simple-httptap-redirector-macos = { version = "0.0.3", path = "../../../redirector/implementation/macos" }
+
+[target.'cfg(windows)'.dependencies]
+simple-httptap-redirector-windows = { version = "0.0.3", path = "../../../redirector/implementation/windows" }
 
 [dev-dependencies]
 simple-httptap-proxy-conformance = { path = "../../conformance" }
