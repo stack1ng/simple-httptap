@@ -131,7 +131,7 @@ fn print_usage() {
 fn run(mut arguments: Vec<OsString>) -> std::io::Result<ExitCode> {
     let path = arguments.remove(usize::MIN);
     let (mode, keylog) = match std::env::var_os(KEYLOG_VARIABLE).filter(|value| !value.is_empty()) {
-        Some(file) => (Mode::PassThrough, PathBuf::from(file)),
+        Some(file) => (Mode::PassThrough, create_program_keylog(PathBuf::from(file))?),
         None => (Mode::Intercept, create_own_keylog()?),
     };
     let keys = FileKeylog.open(&keylog)?;
@@ -181,6 +181,35 @@ fn create_own_keylog() -> std::io::Result<PathBuf> {
     options.open(&file)?;
     Ok(file)
 }
+
+/// Makes the key log the program writes, if it is missing, owned by the user `sudo` ran httptap for, if any.
+///
+/// The program runs as that user, so a file httptap made as root would be one the program cannot write to.
+fn create_program_keylog(file: PathBuf) -> std::io::Result<PathBuf> {
+    if file.exists() {
+        return Ok(file);
+    }
+    let mut options = std::fs::OpenOptions::new();
+    options.create(true).append(true);
+    #[cfg(unix)]
+    std::os::unix::fs::OpenOptionsExt::mode(&mut options, OWNER_ONLY);
+    options.open(&file)?;
+    #[cfg(unix)]
+    if let (Some(user), Some(group)) = (sudo_id(SUDO_MARKER), sudo_id(SUDO_GROUP)) {
+        std::os::unix::fs::chown(&file, Some(user), Some(group))?;
+    }
+    Ok(file)
+}
+
+/// Returns the numeric identifier `sudo` left in the variable, or none if httptap was not run by `sudo`.
+#[cfg(unix)]
+fn sudo_id(variable: &str) -> Option<u32> {
+    std::env::var(variable).ok()?.parse().ok()
+}
+
+/// The variable `sudo` sets to the group of the user it ran the command for.
+#[cfg(unix)]
+const SUDO_GROUP: &str = "SUDO_GID";
 
 /// The permissions of a file only its owner may read and write.
 ///
