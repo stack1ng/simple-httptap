@@ -567,7 +567,7 @@ struct Setup {
     resolver: Option<CString>,
     /// The user, group and supplementary groups to run the program as, if root runs it for someone.
     identity: Option<(libc::uid_t, libc::gid_t, Vec<libc::gid_t>)>,
-    /// This process, which the program dies with, so it never outlives the stack that carries its traffic.
+    /// This process, which the program dies with.
     parent: libc::pid_t,
 }
 
@@ -694,8 +694,8 @@ impl Setup {
             // SAFETY: as above.
             check(unsafe { libc::setuid(*uid) }, Step::Identity)?;
         }
-        // Set after the identity, which clears it; and httptap may have died before it was set.
-        // SAFETY: prctl and getppid take values alone.
+        // After setuid, which clears it.
+        // SAFETY: values only.
         check(unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) }, Step::ParentDeath)?;
         // SAFETY: as above.
         if unsafe { libc::getppid() } != self.parent {

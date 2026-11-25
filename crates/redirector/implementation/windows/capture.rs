@@ -59,7 +59,7 @@ pub(crate) struct Running {
     watch: Arc<Watch>,
 }
 
-/// Whether the diversion is being stopped on purpose, and why it ended if it ended on its own first.
+/// The record of whether the diversion is stopping on purpose, and of why it ended first if it did.
 ///
 /// No capture fails silently: a thread that ends while the program runs stops the job's every process.
 #[derive(Debug)]
@@ -177,8 +177,7 @@ impl Drop for Diversion {
     }
 }
 
-/// Starts a thread under a name that panics and debuggers show, running the work; if the work ends, or panics,
-/// while the program runs, the watch stops the program.
+/// Starts a named thread running the work; if the work ends or panics while the program runs, the program is stopped.
 fn spawn(name: &str, watch: &Arc<Watch>, work: impl FnOnce() + Send + std::panic::UnwindSafe + 'static) -> std::io::Result<JoinHandle<()>> {
     let watch = Arc::clone(watch);
     let thread = name.to_owned();

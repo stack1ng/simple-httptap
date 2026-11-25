@@ -8,9 +8,9 @@ use std::process::ExitStatus;
 pub trait Redirector {
     type Capture: Capture;
 
-    /// Starts the program, sending its and its descendants' traffic through the SOCKS5 proxy at the address.
+    /// Starts the program, its tree's traffic going to the SOCKS5 proxy; its stdout is our stderr.
     ///
-    /// Its stdout goes to our stderr; stdin and stderr are ours. `Unsupported` errors say what we lack.
+    /// `Unsupported` errors say what we lack.
     fn launch(&self, program: &Program, proxy: SocketAddr) -> std::io::Result<Self::Capture>;
 }
 
@@ -18,9 +18,7 @@ pub trait Redirector {
 pub trait Capture: Send + 'static {
     fn id(&self) -> u32;
 
-    /// Waits for the exit, stops redirecting, and returns the status.
-    ///
-    /// Never silent: if redirecting breaks first, it kills the program tree and errs; if we die, so does the tree.
+    /// Waits for the exit and returns the status; a broken redirect kills the tree and errs, as our death does.
     fn wait(self) -> std::io::Result<ExitStatus>;
 }
 

@@ -45,7 +45,8 @@ The command is `httptap`; the project, its Homebrew formula and its data folder 
 - **macOS:** a network extension sends the program's flows to httptap. The first run installs `httptap.app` in
   `/Applications` and macOS asks you, once, to allow its extension (System Settings → General → Login Items &
   Extensions → Network Extensions) and its proxy configuration. The extension only takes flows of programs
-  httptap started, and stops itself when no httptap is running.
+  httptap started, and stops itself when no httptap is running; `/Applications/httptap.app/Contents/MacOS/httptap
+  --stop` stops it at once.
 - **Linux:** the program runs in its own network namespace whose only way out is httptap. That needs
   unprivileged user namespaces, or `sudo`; on Ubuntu 24.04 and later, which restricts them, run httptap with
   `sudo` (the program still runs as you) or allow them with `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0`.
@@ -74,6 +75,12 @@ httptap curl https://example.com > tap.jsonl
 stdout carries only httptap's JSON lines: the program's own stdout goes to stderr, with httptap's messages.
 httptap exits when the program does, with its exit code.
 
+Capture never fails silently. If capturing breaks while the program runs, because the macOS extension was
+stopped, the Linux network stack ended or a Windows capture thread did, httptap stops the program and everything
+it started, writes a `failed` event, says why on stderr and exits non-zero. If httptap itself dies, even from
+`kill -9`, the program dies with it. Processes the program leaves running when it exits are stopped too, and named
+on stderr, as their traffic would no longer be captured.
+
 When httptap intercepts, programs that keep their own CA list need it pointed at the root certificate, for
 example `NODE_EXTRA_CA_CERTS` for Node and `SSL_CERT_FILE` for Python. `httptap trust` adds the root to the system's
 trust store: on macOS through the system's own prompt, on Linux with `sudo` for the system store, on Windows into
@@ -99,6 +106,7 @@ One JSON object per line, `event` first and `unix_ms` last:
 | `fault` | `connection`, `from`, `detail`: why the bytes after it are `unparsed`, such as a client random the key log has no secret for |
 | `refused` | `connection`, `detail`: the target could not be reached, or TLS or QUIC to it failed |
 | `closed` | `connection` |
+| `failed` | `detail`: capture broke, so httptap stopped the program; always the last line |
 
 A UDP connection is one destination's datagrams both ways, so an HTTP/3 connection is `"transport": "udp",
 "protocol": "h3"`. Bytes are a JSON string when they are UTF-8 and `{"base64": "..."}` otherwise. Bodies are
@@ -117,3 +125,10 @@ message cut off by a closed connection still comes out, with `complete: false`.
   its host certificates point to, because Windows tools such as `curl.exe` refuse a certificate whose
   revocation they cannot check.
 - A UDP connection closes in the output after two minutes without a datagram, or when the program exits.
+- Traffic to the machine's own addresses (`localhost`) is not captured. On Linux the program has a loopback of its
+  own, so it cannot reach servers on the host's `localhost`.
+- On Windows, a packet whose socket httptap never saw opening, such as one from a connection made before the run,
+  is matched to its process through Windows' connection tables. If Windows names no process, the packet passes and
+  httptap says so on stderr.
+- Edge does not log keys for the connection `--origin-to-force-quic-on` makes, which comes out as a `fault`;
+  its HTTP/3 connections made the usual way decrypt.

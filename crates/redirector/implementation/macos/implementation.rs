@@ -95,6 +95,14 @@ mod macos {
     ///
     /// https://doc.rust-lang.org/std/thread/fn.sleep.html
     const START_POLL: Duration = Duration::from_millis(100);
+    /// Why capture was lost when the extension closed the connection without an error.
+    const CLOSED: &str = "it closed the connection";
+    /// The error `finish` returns when the extension never answered `END` within `END_WAIT`, as when it stopped meanwhile.
+    const UNCONFIRMED: &str = "the network extension did not confirm the capture ended; processes the program left running may have gone uncaptured";
+    /// The size and flavor argument of a `proc_*` call that asks only for a count, or for the default flavor.
+    ///
+    /// https://opensource.apple.com/source/xnu/xnu-7195.81.3/libsyscall/wrappers/libproc/libproc.h
+    const NOTHING: libc::c_int = 0;
     /// The line that asks the extension to stop what remains of the program once it exited.
     const END: &str = "end";
     /// The start of the extension's answer to `END`, which the identifiers of the processes it stopped follow.
@@ -105,12 +113,13 @@ mod macos {
     ///
     /// https://doc.rust-lang.org/std/sync/mpsc/struct.Receiver.html#method.recv_timeout
     const END_WAIT: Duration = Duration::from_secs(5);
-    /// The process group `posix_spawn` makes the program lead: one of its own, which its descendants keep when
-    /// orphaned, so the extension knows them as the program's.
+    /// The process group `posix_spawn` makes the program lead: a new one, which its descendants keep when orphaned.
     ///
     /// https://pubs.opengroup.org/onlinepubs/9799919799/functions/posix_spawnattr_setpgroup.html
     const NEW_GROUP: libc::pid_t = 0;
     /// The most ancestors followed up from a process, which no real process tree reaches.
+    ///
+    /// https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getppid.2.html
     const LINEAGE_LIMIT: usize = 64;
     /// The separator between a variable's name and value in an environment entry.
     const ENVIRONMENT_SEPARATOR: &str = "=";
@@ -147,8 +156,9 @@ mod macos {
     }
 
     impl Watch {
-        /// Starts a thread that reads the extension's lines: flow failures go to stderr, answers to `finish`, and the
-        /// connection ending while the program runs stops the program tree, as its traffic would go uncaptured.
+        /// Starts a thread reading the extension's lines; the connection ending while the program runs stops its tree.
+        ///
+        /// Flow failures go to stderr and answers to `finish`, as the program's traffic would otherwise go uncaptured.
         fn start(control: UnixStream, pid: libc::pid_t) -> std::io::Result<Self> {
             let reader = control.try_clone()?;
             let ending = Arc::new(AtomicBool::new(false));
@@ -166,7 +176,7 @@ mod macos {
                             }
                         },
                         Some(Err(fault)) => break fault.to_string(),
-                        None => break "it closed the connection".to_owned(),
+                        None => break CLOSED.to_owned(),
                     }
                 };
                 if thread_ending.load(Ordering::SeqCst) {
@@ -193,7 +203,7 @@ mod macos {
         watch.ending.store(true, Ordering::SeqCst);
         let answered = writeln!(watch.control, "{END}").ok().and_then(|()| watch.answers.recv_timeout(END_WAIT).ok());
         let Some(answer) = answered.filter(|answer| answer.starts_with(ENDED)) else {
-            let cause = lost().unwrap_or_else(|| "the network extension did not confirm the capture ended; processes the program left running may have gone uncaptured".to_owned());
+            let cause = lost().unwrap_or_else(|| UNCONFIRMED.to_owned());
             return Err(std::io::Error::other(cause));
         };
         let stopped = answer[ENDED.len()..].trim();
@@ -203,8 +213,7 @@ mod macos {
         Ok(status)
     }
 
-    /// Makes the program's group the terminal's foreground, if this process has the terminal, so typing and Ctrl-C
-    /// reach the program as they would without httptap.
+    /// Gives the program's group the terminal's foreground, if this process has it, so typing and Ctrl-C reach the program.
     fn hand_terminal_to(group: libc::pid_t) {
         // SAFETY: these calls only read and set the terminal's foreground group; SIGTTOU is ignored so this process
         // may set it while in the background.
@@ -241,14 +250,14 @@ mod macos {
     /// Returns the identifiers of every running process.
     fn all_processes() -> Vec<libc::pid_t> {
         // SAFETY: a null buffer asks only for the count.
-        let count = unsafe { libc::proc_listallpids(std::ptr::null_mut(), 0) };
+        let count = unsafe { libc::proc_listallpids(std::ptr::null_mut(), NOTHING) };
         let Ok(count) = usize::try_from(count) else { return Vec::new() };
         let mut pids = vec![libc::pid_t::default(); count * 2];
         let size = i32::try_from(pids.len() * size_of::<libc::pid_t>()).unwrap_or(i32::MAX);
         // SAFETY: the buffer holds `size` bytes, which is what is passed.
         let filled = unsafe { libc::proc_listallpids(pids.as_mut_ptr().cast(), size) };
         pids.truncate(usize::try_from(filled).unwrap_or_default());
-        pids.retain(|&pid| pid > 0);
+        pids.retain(|&pid| pid > libc::pid_t::default());
         pids
     }
 
@@ -262,7 +271,7 @@ mod macos {
             let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
             let size = i32::try_from(size_of::<libc::proc_bsdinfo>()).unwrap_or(i32::MAX);
             // SAFETY: info is a live proc_bsdinfo of `size` bytes.
-            let read = unsafe { libc::proc_pidinfo(current, libc::PROC_PIDTBSDINFO, 0, (&raw mut info).cast(), size) };
+            let read = unsafe { libc::proc_pidinfo(current, libc::PROC_PIDTBSDINFO, u64::MIN, (&raw mut info).cast(), size) };
             if read != size {
                 break;
             }

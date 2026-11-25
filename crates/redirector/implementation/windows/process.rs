@@ -111,6 +111,8 @@ impl Job {
 }
 
 /// The exit code of the processes the job ends because capture was lost.
+///
+/// https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-terminatejobobject
 const TERMINATED: u32 = 1;
 
 /// Resumes the one thread of a process started suspended.

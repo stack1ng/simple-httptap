@@ -67,7 +67,7 @@ impl Capture for NamespaceCapture {
         #[cfg(target_os = "linux")]
         {
             self.stack.stop();
-            if let Some(cause) = self.stack.lost() {
+            if let Some(cause) = self.stack.loss_cause() {
                 return Err(std::io::Error::other(cause));
             }
         }
@@ -128,7 +128,7 @@ impl Stack {
     }
 
     /// Returns why the stack ended while the program ran, if it did.
-    fn lost(&self) -> Option<String> {
+    fn loss_cause(&self) -> Option<String> {
         self.lost.lock().ok().and_then(|lost| lost.clone())
     }
 
@@ -141,7 +141,7 @@ impl Stack {
     }
 }
 
-/// The error of a capture whose stack ended while the program ran.
+/// The message `wait` returns when the stack ended on its own, naming what httptap then did to the program.
 #[cfg(target_os = "linux")]
 const STACK_LOST: &str = "the network stack carrying the program's traffic stopped; httptap stopped the program, whose namespace had no network left";
 /// The name of the stack's thread, which runs its runtime.

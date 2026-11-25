@@ -1,7 +1,6 @@
 //! The fate of each flow leaving the machine: diverted when one of the program's processes opened it, passed on otherwise.
 //!
-//! Packets of a flow wait a little for the socket event that names its process; a flow still unnamed then, or holding too
-//! many packets, is overdue, and its fate is decided from Windows' table of who owns the port, never guessed.
+//! A flow its socket event does not name in time is overdue, and decided by its port's owner, never guessed.
 
 use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
@@ -93,6 +92,7 @@ impl<P> Table<P> {
     }
 
     /// Returns the transport, local port and remote end of the flow.
+    #[cfg(windows)]
     pub(crate) fn parts(flow: &Flow) -> (Transport, u16, SocketAddr) {
         (flow.transport, flow.local_port, SocketAddr::new(flow.remote_ip, flow.remote_port))
     }
