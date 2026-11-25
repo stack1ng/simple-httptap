@@ -38,6 +38,7 @@ impl Job {
         let mut command = Command::new(&program.path);
         command
             .args(&program.arguments)
+            .stdout(std::io::stderr())
             .creation_flags(CREATE_SUSPENDED);
         for (name, value) in &program.environment {
             match value {
