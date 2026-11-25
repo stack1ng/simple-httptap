@@ -10,7 +10,7 @@ pub trait Sink: Default + Send + Sync + 'static {
     fn write_event(&self, event: &Event) -> std::io::Result<()>;
 }
 
-/// A thing the proxy saw: it listens, a connection opens, bytes decode, a request is refused, or it closes.
+/// A thing the proxy saw: it listens, a connection opens, bytes decode, a request is refused, it closes, or capture failed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
     Listening { address: SocketAddr },
@@ -18,6 +18,7 @@ pub enum Event {
     Decoded { connection: u64, decoded: Decoded },
     Refused { connection: u64, detail: String },
     Closed { connection: u64 },
+    Failed { detail: String },
 }
 
 /// A connection through the proxy, numbered while it runs, with the target the client asked for.

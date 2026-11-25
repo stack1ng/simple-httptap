@@ -44,6 +44,7 @@ enum Happening<'a> {
     Fault { connection: u64, from: Side, detail: &'a str },
     Refused { connection: u64, detail: &'a str },
     Closed { connection: u64 },
+    Failed { detail: &'a str },
 }
 
 /// A request's or response's fields, each field written as a `[name, value]` pair in order.
@@ -103,6 +104,7 @@ impl<'a> Line<'a> {
             }
             Event::Refused { connection, detail } => Happening::Refused { connection: *connection, detail },
             Event::Closed { connection } => Happening::Closed { connection: *connection },
+            Event::Failed { detail } => Happening::Failed { detail },
         };
         Self { event, unix_ms }
     }

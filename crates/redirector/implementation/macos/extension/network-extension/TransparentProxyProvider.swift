@@ -62,6 +62,7 @@ class TransparentProxyProvider: NETransparentProxyProvider {
                     tcpFlow.inboundCopier(connection)
                 } catch {
                     log.error("TCP flow of process \(pid, privacy: .public) to \(remote.hostname, privacy: .public):\(port, privacy: .public) failed: \(String(describing: error), privacy: .public)")
+                    server.report(capture, "TCP from process \(pid) to \(remote.hostname):\(port): \(error)")
                     tcpFlow.closeReadWithError(error)
                     tcpFlow.closeWriteWithError(error)
                 }
@@ -77,6 +78,7 @@ class TransparentProxyProvider: NETransparentProxyProvider {
                     udpFlow.inboundCopier(relay, control: control)
                 } catch {
                     log.error("UDP flow of process \(pid, privacy: .public) failed: \(String(describing: error), privacy: .public)")
+                    server.report(capture, "UDP from process \(pid): \(error)")
                     udpFlow.closeReadWithError(error)
                     udpFlow.closeWriteWithError(error)
                 }

@@ -17,6 +17,7 @@ use simple_httptap_keylog_file::FileKeylog;
 use simple_httptap_proxy::{Credentials, Listener, Mode, Proxy, Upstream};
 use simple_httptap_proxy_tokio::TokioProxy;
 use simple_httptap_redirector::{Capture, Program, Redirector};
+use simple_httptap_sink::{Event, Sink};
 use simple_httptap_sink_ndjson::NdJson;
 use simple_httptap_trust::{Outcome, Trust};
 use simple_httptap_trust_system::SystemTrust;
@@ -156,7 +157,15 @@ fn run(mut arguments: Vec<OsString>) -> std::io::Result<ExitCode> {
     });
     let program = Program { path, arguments, environment: Vec::new() };
     let capture = SystemRedirector.launch(&program, address)?;
-    let status = capture.wait()?;
+    let status = match capture.wait() {
+        Ok(status) => status,
+        Err(fault) => {
+            std::thread::sleep(DRAIN);
+            let detail = format!("capture failed: {fault}");
+            let _ = NdJson.write_event(&Event::Failed { detail: detail.clone() });
+            return Err(std::io::Error::other(detail));
+        }
+    };
     std::thread::sleep(DRAIN);
     Ok(ExitCode::from(exit_code(status)))
 }

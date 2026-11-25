@@ -46,6 +46,7 @@ fn every_kind_of_event() -> Vec<Event> {
         Event::Decoded { connection: id, decoded: Decoded::Fault { direction: Direction::Client, detail: DETAIL.to_owned() } },
         Event::Refused { connection: id, detail: DETAIL.to_owned() },
         Event::Closed { connection: id },
+        Event::Failed { detail: DETAIL.to_owned() },
     ]
 }
 

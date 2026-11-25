@@ -36,6 +36,27 @@ enum Processes {
         return lineage
     }
 
+    /// Returns when a process started, in microseconds since 1970, which tells it apart from a later one reusing its identifier.
+    static func started(_ info: proc_bsdinfo) -> UInt64 {
+        info.pbi_start_tvsec * 1_000_000 + info.pbi_start_tvusec
+    }
+
+    /// Returns the process with when it started, or none if it is not running.
+    static func identity(_ pid: pid_t) -> ProcessIdentity? {
+        info(pid).map { ProcessIdentity(pid: pid, started: started($0)) }
+    }
+
+    /// Returns the identifiers of every running process.
+    static func all() -> [pid_t] {
+        let count = proc_listallpids(nil, 0)
+        guard count > 0 else { return [] }
+        var pids = [pid_t](repeating: 0, count: Int(count) * 2)
+        let filled = pids.withUnsafeMutableBufferPointer { buffer in
+            proc_listallpids(buffer.baseAddress, Int32(buffer.count * MemoryLayout<pid_t>.size))
+        }
+        return Array(pids.prefix(Int(max(filled, 0)))).filter { $0 > 0 }
+    }
+
     /// Returns the user a process runs as.
     static func owner(_ pid: pid_t) -> uid_t? {
         info(pid).map { $0.pbi_uid }

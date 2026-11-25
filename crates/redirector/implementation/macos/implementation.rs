@@ -33,7 +33,7 @@ impl Redirector for ExtensionRedirector {
 pub struct ExtensionCapture {
     pid: u32,
     #[cfg(target_os = "macos")]
-    _control: std::os::unix::net::UnixStream,
+    watch: macos::Watch,
 }
 
 impl Capture for ExtensionCapture {
@@ -44,7 +44,7 @@ impl Capture for ExtensionCapture {
     fn wait(self) -> std::io::Result<ExitStatus> {
         #[cfg(target_os = "macos")]
         {
-            macos::wait(self.pid)
+            macos::finish(self.pid, self.watch)
         }
         #[cfg(not(target_os = "macos"))]
         {
@@ -63,6 +63,8 @@ mod macos {
     use std::os::unix::process::ExitStatusExt;
     use std::path::Path;
     use std::process::{Command, ExitStatus};
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, Mutex, mpsc};
     use std::time::{Duration, Instant};
 
     use simple_httptap_redirector::Program;
@@ -72,7 +74,7 @@ mod macos {
     /// The extension's control socket, where each capture registers its program.
     const CONTROL_SOCKET: &str = "/var/run/com.stack1ng.simplehttptap.redirector.sock";
     /// The line the extension greets each client with: the protocol and the version this crate speaks.
-    const GREETING: &str = "httptap-redirector 1";
+    const GREETING: &str = "httptap-redirector 2";
     /// The answer to a registration the extension accepted.
     const ACCEPTED: &str = "ok";
     /// Where the app that installs the extension must be, as macOS installs system extensions only from there.
@@ -93,6 +95,23 @@ mod macos {
     ///
     /// https://doc.rust-lang.org/std/thread/fn.sleep.html
     const START_POLL: Duration = Duration::from_millis(100);
+    /// The line that asks the extension to stop what remains of the program once it exited.
+    const END: &str = "end";
+    /// The start of the extension's answer to `END`, which the identifiers of the processes it stopped follow.
+    const ENDED: &str = "ended";
+    /// The start of a line saying a flow of the program could not reach the proxy, which the reason follows.
+    const FLOW_FAILED: &str = "flow-failed ";
+    /// How long the extension may take to answer `END`.
+    ///
+    /// https://doc.rust-lang.org/std/sync/mpsc/struct.Receiver.html#method.recv_timeout
+    const END_WAIT: Duration = Duration::from_secs(5);
+    /// The process group `posix_spawn` makes the program lead: one of its own, which its descendants keep when
+    /// orphaned, so the extension knows them as the program's.
+    ///
+    /// https://pubs.opengroup.org/onlinepubs/9799919799/functions/posix_spawnattr_setpgroup.html
+    const NEW_GROUP: libc::pid_t = 0;
+    /// The most ancestors followed up from a process, which no real process tree reaches.
+    const LINEAGE_LIMIT: usize = 64;
     /// The separator between a variable's name and value in an environment entry.
     const ENVIRONMENT_SEPARATOR: &str = "=";
     /// The `waitpid` options that block until the child exits, with no other behaviour.
@@ -111,9 +130,145 @@ mod macos {
             let _ = wait(u32::try_from(pid).unwrap_or_default());
             return Err(fault);
         }
+        let watch = Watch::start(control, pid)?;
+        hand_terminal_to(pid);
         // SAFETY: the process was started stopped by this process; this lets it run.
         unsafe { libc::kill(pid, libc::SIGCONT) };
-        Ok(ExtensionCapture { pid: u32::try_from(pid).unwrap_or_default(), _control: control })
+        Ok(ExtensionCapture { pid: u32::try_from(pid).unwrap_or_default(), watch })
+    }
+
+    /// The watching of a registration: why capture was lost, if it was, and the extension's answers.
+    #[derive(Debug)]
+    pub(super) struct Watch {
+        control: UnixStream,
+        ending: Arc<AtomicBool>,
+        lost: Arc<Mutex<Option<String>>>,
+        answers: mpsc::Receiver<String>,
+    }
+
+    impl Watch {
+        /// Starts a thread that reads the extension's lines: flow failures go to stderr, answers to `finish`, and the
+        /// connection ending while the program runs stops the program tree, as its traffic would go uncaptured.
+        fn start(control: UnixStream, pid: libc::pid_t) -> std::io::Result<Self> {
+            let reader = control.try_clone()?;
+            let ending = Arc::new(AtomicBool::new(false));
+            let lost = Arc::new(Mutex::new(None));
+            let (answer, answers) = mpsc::channel();
+            let (thread_ending, thread_lost) = (Arc::clone(&ending), Arc::clone(&lost));
+            std::thread::spawn(move || {
+                let mut lines = BufReader::new(reader).lines();
+                let cause = loop {
+                    match lines.next() {
+                        Some(Ok(line)) => match line.strip_prefix(FLOW_FAILED) {
+                            Some(detail) => eprintln!("httptap: a flow of the program could not reach httptap, so it failed: {detail}"),
+                            None => {
+                                let _ = answer.send(line);
+                            }
+                        },
+                        Some(Err(fault)) => break fault.to_string(),
+                        None => break "it closed the connection".to_owned(),
+                    }
+                };
+                if thread_ending.load(Ordering::SeqCst) {
+                    return;
+                }
+                if let Ok(mut lost) = thread_lost.lock() {
+                    *lost = Some(format!("the network extension stopped capturing the program ({cause}); httptap stopped the program so none of its traffic went uncaptured"));
+                }
+                stop_tree(pid);
+            });
+            Ok(Self { control, ending, lost, answers })
+        }
+    }
+
+    /// Waits for the program, then has the extension stop what it left running; errs if capture was lost on the way.
+    pub(super) fn finish(pid: u32, mut watch: Watch) -> std::io::Result<ExitStatus> {
+        let status = wait(pid);
+        take_terminal_back();
+        let status = status?;
+        let lost = || watch.lost.lock().ok().and_then(|lost| lost.clone());
+        if let Some(cause) = lost() {
+            return Err(std::io::Error::other(cause));
+        }
+        watch.ending.store(true, Ordering::SeqCst);
+        let answered = writeln!(watch.control, "{END}").ok().and_then(|()| watch.answers.recv_timeout(END_WAIT).ok());
+        let Some(answer) = answered.filter(|answer| answer.starts_with(ENDED)) else {
+            let cause = lost().unwrap_or_else(|| "the network extension did not confirm the capture ended; processes the program left running may have gone uncaptured".to_owned());
+            return Err(std::io::Error::other(cause));
+        };
+        let stopped = answer[ENDED.len()..].trim();
+        if !stopped.is_empty() {
+            eprintln!("httptap: the program left processes running whose traffic would have gone uncaptured, so they were stopped: {stopped}");
+        }
+        Ok(status)
+    }
+
+    /// Makes the program's group the terminal's foreground, if this process has the terminal, so typing and Ctrl-C
+    /// reach the program as they would without httptap.
+    fn hand_terminal_to(group: libc::pid_t) {
+        // SAFETY: these calls only read and set the terminal's foreground group; SIGTTOU is ignored so this process
+        // may set it while in the background.
+        unsafe {
+            if libc::isatty(libc::STDIN_FILENO) == 1 && libc::tcgetpgrp(libc::STDIN_FILENO) == libc::getpgrp() {
+                libc::signal(libc::SIGTTOU, libc::SIG_IGN);
+                libc::tcsetpgrp(libc::STDIN_FILENO, group);
+            }
+        }
+    }
+
+    /// Makes this process's group the terminal's foreground again, if the terminal is still the program's.
+    fn take_terminal_back() {
+        // SAFETY: as in `hand_terminal_to`.
+        unsafe {
+            if libc::isatty(libc::STDIN_FILENO) == 1 && libc::tcgetpgrp(libc::STDIN_FILENO) != libc::getpgrp() {
+                libc::tcsetpgrp(libc::STDIN_FILENO, libc::getpgrp());
+            }
+        }
+    }
+
+    /// Stops, with SIGKILL, the process and every process descended from it.
+    fn stop_tree(pid: libc::pid_t) {
+        let doomed: Vec<libc::pid_t> = all_processes().into_iter().filter(|&other| lineage(other).contains(&pid)).collect();
+        // SAFETY: sending signals has no memory effects; the group and the processes are the program's own.
+        unsafe {
+            libc::killpg(pid, libc::SIGKILL);
+            for other in doomed {
+                libc::kill(other, libc::SIGKILL);
+            }
+        }
+    }
+
+    /// Returns the identifiers of every running process.
+    fn all_processes() -> Vec<libc::pid_t> {
+        // SAFETY: a null buffer asks only for the count.
+        let count = unsafe { libc::proc_listallpids(std::ptr::null_mut(), 0) };
+        let Ok(count) = usize::try_from(count) else { return Vec::new() };
+        let mut pids = vec![libc::pid_t::default(); count * 2];
+        let size = i32::try_from(pids.len() * size_of::<libc::pid_t>()).unwrap_or(i32::MAX);
+        // SAFETY: the buffer holds `size` bytes, which is what is passed.
+        let filled = unsafe { libc::proc_listallpids(pids.as_mut_ptr().cast(), size) };
+        pids.truncate(usize::try_from(filled).unwrap_or_default());
+        pids.retain(|&pid| pid > 0);
+        pids
+    }
+
+    /// Returns the process and its ancestors, nearest first, up to but not including launchd.
+    fn lineage(pid: libc::pid_t) -> Vec<libc::pid_t> {
+        let mut lineage = Vec::new();
+        let mut current = pid;
+        while current > 1 && lineage.len() < LINEAGE_LIMIT {
+            lineage.push(current);
+            // SAFETY: proc_bsdinfo is plain data, for which all zeroes is a valid value.
+            let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
+            let size = i32::try_from(size_of::<libc::proc_bsdinfo>()).unwrap_or(i32::MAX);
+            // SAFETY: info is a live proc_bsdinfo of `size` bytes.
+            let read = unsafe { libc::proc_pidinfo(current, libc::PROC_PIDTBSDINFO, 0, (&raw mut info).cast(), size) };
+            if read != size {
+                break;
+            }
+            current = libc::pid_t::try_from(info.pbi_ppid).unwrap_or_default();
+        }
+        lineage
     }
 
     /// Connects to the extension's control socket and checks its greeting, starting the extension if it does not answer.
@@ -212,7 +367,9 @@ mod macos {
             if initialised != 0 {
                 return Err(std::io::Error::from_raw_os_error(initialised));
             }
-            libc::posix_spawnattr_setflags(&mut attributes, libc::POSIX_SPAWN_START_SUSPENDED as libc::c_short);
+            let flags = libc::POSIX_SPAWN_START_SUSPENDED | libc::POSIX_SPAWN_SETPGROUP;
+            libc::posix_spawnattr_setflags(&mut attributes, flags as libc::c_short);
+            libc::posix_spawnattr_setpgroup(&mut attributes, NEW_GROUP);
             let mut actions: libc::posix_spawn_file_actions_t = std::ptr::null_mut();
             libc::posix_spawn_file_actions_init(&mut actions);
             libc::posix_spawn_file_actions_adddup2(&mut actions, libc::STDERR_FILENO, libc::STDOUT_FILENO);

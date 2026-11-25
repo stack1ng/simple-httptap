@@ -19,6 +19,8 @@ pub trait Capture: Send + 'static {
     fn id(&self) -> u32;
 
     /// Waits for the exit, stops redirecting, and returns the status.
+    ///
+    /// Never silent: if redirecting breaks first, it kills the program tree and errs; if we die, so does the tree.
     fn wait(self) -> std::io::Result<ExitStatus>;
 }
 
