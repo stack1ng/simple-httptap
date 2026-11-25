@@ -11,7 +11,9 @@ use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, TH32CS_SNAPTHREAD, THREADENTRY32, Thread32First, Thread32Next,
 };
 use windows_sys::Win32::System::JobObjects::{
-    AssignProcessToJobObject, CreateJobObjectW, IsProcessInJob,
+    AssignProcessToJobObject, CreateJobObjectW, IsProcessInJob, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION, JobObjectExtendedLimitInformation, SetInformationJobObject,
+    TerminateJobObject,
 };
 use windows_sys::Win32::System::Threading::{
     CREATE_SUSPENDED, OpenProcess, OpenThread, PROCESS_QUERY_LIMITED_INFORMATION, ResumeThread,
@@ -21,7 +23,9 @@ use windows_sys::core::BOOL;
 
 use simple_httptap_redirector::Program;
 
-/// A job object with no limits, whose processes are the program and its descendants.
+/// A job object whose processes are the program and its descendants, all ended when its last handle closes.
+///
+/// httptap holds the only handle, so if httptap dies however it dies, the program dies too: it never runs uncaptured.
 #[derive(Debug)]
 pub(crate) struct Job(OwnedHandle);
 
@@ -30,7 +34,29 @@ impl Job {
     pub(crate) fn new() -> std::io::Result<Self> {
         // SAFETY: no security attributes and no name are asked for.
         let raw = unsafe { CreateJobObjectW(ptr::null(), ptr::null()) };
-        owned(raw).map(Self)
+        let job = owned(raw)?;
+        // SAFETY: the structure is plain data, valid when zeroed.
+        let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = unsafe { std::mem::zeroed() };
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        // SAFETY: the job is open, and the pointer and size describe the structure.
+        let set = unsafe {
+            SetInformationJobObject(
+                job.as_raw_handle(),
+                JobObjectExtendedLimitInformation,
+                (&raw const limits).cast(),
+                size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+            )
+        };
+        if set == BOOL::default() {
+            return Err(Error::last_os_error());
+        }
+        Ok(Self(job))
+    }
+
+    /// Ends every process in the job.
+    pub(crate) fn terminate(&self) {
+        // SAFETY: the job is open; the exit code is any value.
+        unsafe { TerminateJobObject(self.0.as_raw_handle(), TERMINATED) };
     }
 
     /// Starts the program suspended, puts it in the job, then lets it run, so it starts nothing outside the job.
@@ -83,6 +109,9 @@ impl Job {
         asked != BOOL::default() && inside != BOOL::default()
     }
 }
+
+/// The exit code of the processes the job ends because capture was lost.
+const TERMINATED: u32 = 1;
 
 /// Resumes the one thread of a process started suspended.
 fn resume(process_id: u32) -> std::io::Result<()> {

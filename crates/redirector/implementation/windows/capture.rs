@@ -2,7 +2,8 @@
 
 use std::net::SocketAddr;
 use std::process::{Child, ExitStatus};
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
@@ -11,6 +12,7 @@ use tokio::sync::mpsc;
 use simple_httptap_redirector::Program;
 
 use crate::divert::{self, Address, Handle};
+use crate::owners;
 use crate::packet;
 use crate::process::Job;
 use crate::stack;
@@ -54,6 +56,30 @@ const STACK_THREAD: &str = "httptap stack";
 pub(crate) struct Running {
     child: Child,
     diversion: Diversion,
+    watch: Arc<Watch>,
+}
+
+/// Whether the diversion is being stopped on purpose, and why it ended if it ended on its own first.
+///
+/// No capture fails silently: a thread that ends while the program runs stops the job's every process.
+#[derive(Debug)]
+struct Watch {
+    stopping: AtomicBool,
+    lost: Mutex<Option<String>>,
+    job: Arc<Job>,
+}
+
+impl Watch {
+    /// Records that the named thread ended while the program ran, and stops the program's every process.
+    fn lose(&self, thread: &str) {
+        if self.stopping.load(Ordering::SeqCst) {
+            return;
+        }
+        if let Ok(mut lost) = self.lost.lock() {
+            lost.get_or_insert_with(|| format!("{thread} stopped while the program ran; httptap stopped the program so none of its traffic went uncaptured"));
+        }
+        self.job.terminate();
+    }
 }
 
 /// The socket and network WinDivert handles with their serving threads, all stopped on drop.
@@ -99,24 +125,27 @@ pub(crate) fn launch(program: &Program, proxy: SocketAddr) -> std::io::Result<Ru
         network: Arc::clone(&network),
         threads: Vec::new(),
     };
+    let watch = Arc::new(Watch { stopping: AtomicBool::new(false), lost: Mutex::default(), job: Arc::clone(&job) });
     let reader = Arc::clone(&job);
-    diversion.threads.push(spawn(EVENTS_THREAD, move || {
+    diversion.threads.push(spawn(EVENTS_THREAD, &watch, move || {
         read_events(&socket, &reader, &events)
     })?);
-    diversion.threads.push(spawn(PACKETS_THREAD, move || {
+    diversion.threads.push(spawn(PACKETS_THREAD, &watch, move || {
         read_packets(&network, &packets)
     })?);
-    diversion.threads.push(spawn(STACK_THREAD, move || {
+    let router = Arc::clone(&job);
+    diversion.threads.push(spawn(STACK_THREAD, &watch, move || {
         runtime.block_on(route_packets(
             proxy,
             event_receiver,
             packet_receiver,
             inject,
+            router,
         ));
         runtime.shutdown_background();
     })?);
     let child = job.start(program)?;
-    Ok(Running { child, diversion })
+    Ok(Running { child, diversion, watch })
 }
 
 impl Running {
@@ -128,7 +157,11 @@ impl Running {
     /// Waits for the started process, then stops diverting.
     pub(crate) fn wait(mut self) -> std::io::Result<ExitStatus> {
         let status = self.child.wait();
+        self.watch.stopping.store(true, Ordering::SeqCst);
         drop(self.diversion);
+        if let Some(cause) = self.watch.lost.lock().ok().and_then(|lost| lost.clone()) {
+            return Err(std::io::Error::other(cause));
+        }
         status
     }
 }
@@ -144,11 +177,17 @@ impl Drop for Diversion {
     }
 }
 
-/// Starts a thread under a name that panics and debuggers show, running the work.
-fn spawn(name: &str, work: impl FnOnce() + Send + 'static) -> std::io::Result<JoinHandle<()>> {
+/// Starts a thread under a name that panics and debuggers show, running the work; if the work ends, or panics,
+/// while the program runs, the watch stops the program.
+fn spawn(name: &str, watch: &Arc<Watch>, work: impl FnOnce() + Send + std::panic::UnwindSafe + 'static) -> std::io::Result<JoinHandle<()>> {
+    let watch = Arc::clone(watch);
+    let thread = name.to_owned();
     std::thread::Builder::new()
         .name(name.to_owned())
-        .spawn(work)
+        .spawn(move || {
+            let _ = std::panic::catch_unwind(work);
+            watch.lose(&thread);
+        })
 }
 
 /// Reads socket events until the handle shuts, sending the fate of each flow opened or accepted.
@@ -191,6 +230,7 @@ async fn route_packets(
     mut events: mpsc::Receiver<(Flow, Fate)>,
     mut packets: mpsc::Receiver<(Vec<u8>, Address)>,
     inject: Handle,
+    job: Arc<Job>,
 ) {
     let (diverted, diverted_receiver) = mpsc::channel(QUEUE);
     let (replies, mut reply_receiver) = mpsc::unbounded_channel();
@@ -220,14 +260,37 @@ async fn route_packets(
             }
             Some(reply) = reply_receiver.recv() => drop(inject.send(&reply, &Address::toward_program())),
             _ = tick.tick() => {
-                for captured in table.expire(Instant::now()) {
-                    send(Fate::Pass, captured);
+                let now = Instant::now();
+                for flow in table.overdue(now) {
+                    let fate = fate_by_owner(&flow, &job);
+                    for captured in table.decide(flow, fate, now) {
+                        send(fate, captured);
+                    }
                 }
             }
         }
     }
-    for captured in table.expire(Instant::now() + GRACE) {
-        send(Fate::Pass, captured);
+    let end = Instant::now() + GRACE;
+    for flow in table.overdue(end) {
+        let fate = fate_by_owner(&flow, &job);
+        for captured in table.decide(flow, fate, end) {
+            send(fate, captured);
+        }
     }
     stack.abort();
+}
+
+/// Returns the fate of a flow no socket event named in time, from the process Windows says owns its port.
+///
+/// A flow whose owner Windows cannot name passes, which httptap says on stderr, as it may be the program's.
+fn fate_by_owner(flow: &Flow, job: &Job) -> Fate {
+    let (transport, local_port, remote) = Table::<()>::parts(flow);
+    match owners::owner(transport, local_port, remote) {
+        Some(process_id) if job.contains(process_id) => Fate::Divert,
+        Some(_) => Fate::Pass,
+        None => {
+            eprintln!("httptap: Windows names no process for a flow from local port {local_port} to {remote}, so it passed uncaptured; if it was the program's, its traffic is missing from the output");
+            Fate::Pass
+        }
+    }
 }

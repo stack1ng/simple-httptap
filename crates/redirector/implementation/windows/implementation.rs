@@ -13,6 +13,8 @@ use simple_httptap_redirector::{Capture, Program, Redirector};
 mod capture;
 #[cfg(windows)]
 mod divert;
+#[cfg(windows)]
+mod owners;
 #[cfg(any(windows, test))]
 mod packet;
 #[cfg(windows)]

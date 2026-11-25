@@ -152,6 +152,8 @@ pub(crate) fn start(program: &Program) -> Result<Started> {
         identity: account
             .as_ref()
             .map(|account| (account.uid, account.gid, account.groups.clone())),
+        // SAFETY: getpid takes nothing.
+        parent: unsafe { libc::getpid() },
     };
     let mut command = Command::new(&program.path);
     command.args(&program.arguments);
@@ -387,6 +389,7 @@ enum Step {
     Route,
     Handover,
     Identity,
+    ParentDeath,
 }
 
 /// Every step with what it does, to read a step back from its code and to follow "could not" in its error.
@@ -414,6 +417,7 @@ const STEPS: &[(Step, &str)] = &[
     ),
     (Step::Handover, "hand the TUN device back to httptap"),
     (Step::Identity, "switch to the user who ran sudo"),
+    (Step::ParentDeath, "tie the program's life to httptap's"),
 ];
 
 impl Step {
@@ -563,6 +567,8 @@ struct Setup {
     resolver: Option<CString>,
     /// The user, group and supplementary groups to run the program as, if root runs it for someone.
     identity: Option<(libc::uid_t, libc::gid_t, Vec<libc::gid_t>)>,
+    /// This process, which the program dies with, so it never outlives the stack that carries its traffic.
+    parent: libc::pid_t,
 }
 
 /// The result of a step of the setup: the error number it failed with.
@@ -687,6 +693,13 @@ impl Setup {
             check(unsafe { libc::setgid(*gid) }, Step::Identity)?;
             // SAFETY: as above.
             check(unsafe { libc::setuid(*uid) }, Step::Identity)?;
+        }
+        // Set after the identity, which clears it; and httptap may have died before it was set.
+        // SAFETY: prctl and getppid take values alone.
+        check(unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) }, Step::ParentDeath)?;
+        // SAFETY: as above.
+        if unsafe { libc::getppid() } != self.parent {
+            return Err((Step::ParentDeath, libc::ESRCH));
         }
         Ok(())
     }

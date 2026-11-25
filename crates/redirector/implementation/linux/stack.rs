@@ -113,7 +113,7 @@ pub(crate) async fn serve(
     tun: AsyncFd<File>,
     proxy: SocketAddr,
     names: NameServers,
-    mut stop: oneshot::Receiver<()>,
+    stop: &mut oneshot::Receiver<()>,
 ) {
     let (commands, mut orders) = mpsc::unbounded_channel();
     let mut stack = Stack::new(proxy, names, commands);
@@ -124,7 +124,7 @@ pub(crate) async fn serve(
             .poll_delay(smoltcp::time::Instant::now(), &stack.sockets)
             .map(Duration::from);
         tokio::select! {
-            _ = &mut stop => return,
+            _ = &mut *stop => return,
             readable = tun.readable() => {
                 let Ok(mut guard) = readable else { return };
                 for _ in usize::MIN..PACKETS_PER_TURN {

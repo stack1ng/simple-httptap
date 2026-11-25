@@ -1,6 +1,7 @@
 //! The fate of each flow leaving the machine: diverted when one of the program's processes opened it, passed on otherwise.
 //!
-//! Packets of a flow wait a little for the socket event that names its process; with none, as for older flows, they pass.
+//! Packets of a flow wait a little for the socket event that names its process; a flow still unnamed then, or holding too
+//! many packets, is overdue, and its fate is decided from Windows' table of who owns the port, never guessed.
 
 use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
@@ -16,7 +17,7 @@ pub(crate) const GRACE: Duration = Duration::from_secs(1);
 ///
 /// https://github.com/mitmproxy/mitmproxy_rs/blob/main/mitmproxy-windows/redirector/src/main2.rs
 const IDLE: Duration = Duration::from_secs(600);
-/// The packets a flow may hold while it waits; later ones pass on.
+/// The packets a flow may hold while it waits before it is overdue.
 ///
 /// https://reqrypt.org/windivert-doc.html#divert_set_param
 const HELD_MAX: usize = 64;
@@ -87,11 +88,13 @@ impl<P> Table<P> {
             return Some((*fate, packet));
         }
         let (_, packets) = self.held.entry(flow).or_insert_with(|| (now, Vec::new()));
-        if packets.len() >= HELD_MAX {
-            return Some((Fate::Pass, packet));
-        }
         packets.push(packet);
         None
+    }
+
+    /// Returns the transport, local port and remote end of the flow.
+    pub(crate) fn parts(flow: &Flow) -> (Transport, u16, SocketAddr) {
+        (flow.transport, flow.local_port, SocketAddr::new(flow.remote_ip, flow.remote_port))
     }
 
     /// Records the fate of a flow a socket opened, and returns the packets it held.
@@ -103,18 +106,14 @@ impl<P> Table<P> {
             .unwrap_or_default()
     }
 
-    /// Passes on the flows that waited out the grace period, returning their packets, and forgets idle flows.
-    pub(crate) fn expire(&mut self, now: Instant) -> Vec<P> {
+    /// Returns the flows whose packets waited out the grace period or fill their room, and forgets idle flows.
+    pub(crate) fn overdue(&mut self, now: Instant) -> Vec<Flow> {
         self.fates
             .retain(|_, (_, used)| now.duration_since(*used) < IDLE);
-        let late: Vec<Flow> = self
-            .held
+        self.held
             .iter()
-            .filter(|(_, (first, _))| now.duration_since(*first) >= GRACE)
+            .filter(|(_, (first, packets))| now.duration_since(*first) >= GRACE || packets.len() >= HELD_MAX)
             .map(|(flow, _)| *flow)
-            .collect();
-        late.into_iter()
-            .flat_map(|flow| self.decide(flow, Fate::Pass, now))
             .collect()
     }
 }
@@ -143,17 +142,25 @@ mod tests {
         assert_eq!(table.sort(flow(), "ack", now), Some((Fate::Divert, "ack")));
     }
 
-    /// Checks that a flow no socket event names passes on after the grace period.
+    /// Checks that a flow no socket event names is overdue after the grace period, and keeps its packets for the decision.
     #[test]
-    fn passes_flows_that_stay_unknown() {
+    fn reports_flows_that_stay_unknown() {
         let (mut table, now) = (Table::new(), Instant::now());
         assert_eq!(table.sort(flow(), "data", now), None);
-        assert!(table.expire(now).is_empty());
-        assert_eq!(table.expire(now + GRACE), vec!["data"]);
-        assert_eq!(
-            table.sort(flow(), "more", now + GRACE),
-            Some((Fate::Pass, "more"))
-        );
+        assert!(table.overdue(now).is_empty());
+        assert_eq!(table.overdue(now + GRACE), vec![flow()]);
+        assert_eq!(table.decide(flow(), Fate::Pass, now + GRACE), vec!["data"]);
+    }
+
+    /// Checks that a flow holding the most packets it may is overdue at once, and loses none of them.
+    #[test]
+    fn reports_full_flows_at_once() {
+        let (mut table, now) = (Table::new(), Instant::now());
+        for _ in usize::MIN..HELD_MAX {
+            assert_eq!(table.sort(flow(), "data", now), None);
+        }
+        assert_eq!(table.overdue(now), vec![flow()]);
+        assert_eq!(table.decide(flow(), Fate::Divert, now).len(), HELD_MAX);
     }
 
     /// Checks that an IPv4-mapped address in a socket event names the flow of the IPv4 packets.
@@ -178,7 +185,7 @@ mod tests {
     fn forgets_idle_flows() {
         let (mut table, now) = (Table::new(), Instant::now());
         table.decide(flow(), Fate::Divert, now);
-        table.expire(now + IDLE);
+        table.overdue(now + IDLE);
         assert_eq!(table.sort(flow(), "late", now + IDLE), None);
     }
 }
