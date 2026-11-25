@@ -1,0 +1,14 @@
+[package]
+name = "simple-httptap-redirector-conformance"
+version = "0.0.3"
+edition = "2024"
+publish = false
+
+[lib]
+path = "suite.rs"
+
+[dependencies]
+simple-httptap-redirector = { version = "0.0.3", path = ".." }
+
+[lints]
+workspace = true

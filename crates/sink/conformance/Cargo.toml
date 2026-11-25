@@ -9,7 +9,7 @@ path = "suite.rs"
 
 [dependencies]
 simple-httptap-decoder = { version = "0.0.3", path = "../../decoder" }
-simple-httptap-sink = { path = ".." }
+simple-httptap-sink = { version = "0.0.3", path = ".." }
 
 [lints]
 workspace = true

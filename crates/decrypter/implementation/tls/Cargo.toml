@@ -1,0 +1,22 @@
+[package]
+name = "simple-httptap-decrypter-tls"
+version = "0.0.3"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[dependencies]
+simple-httptap-decoder = { version = "0.0.3", path = "../../../decoder" }
+simple-httptap-keylog = { version = "0.0.3", path = "../../../keylog" }
+simple-httptap-decrypter = { version = "0.0.3", path = "../.." }
+
+[dev-dependencies]
+simple-httptap-decrypter-conformance = { path = "../../conformance" }
+
+[lints]
+workspace = true

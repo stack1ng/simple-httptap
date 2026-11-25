@@ -1,0 +1,10 @@
+[package]
+name = "simple-httptap-redirector"
+version = "0.0.3"
+edition = "2024"
+
+[lib]
+path = "interface.rs"
+
+[lints]
+workspace = true

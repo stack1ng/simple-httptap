@@ -19,7 +19,7 @@ base64 = "0.23.1"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order"] }
 simple-httptap-decoder = { version = "0.0.3", path = "../../../decoder" }
-simple-httptap-sink = { path = "../.." }
+simple-httptap-sink = { version = "0.0.3", path = "../.." }
 
 [dev-dependencies]
 simple-httptap-sink-conformance = { path = "../../conformance" }

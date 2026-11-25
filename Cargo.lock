@@ -1160,10 +1160,78 @@ dependencies = [
 ]
 
 [[package]]
+name = "simple-httptap-decoder-http3"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-decoder",
+ "simple-httptap-decoder-conformance",
+]
+
+[[package]]
+name = "simple-httptap-decrypter"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-decoder",
+ "simple-httptap-keylog",
+]
+
+[[package]]
+name = "simple-httptap-decrypter-conformance"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-decoder",
+ "simple-httptap-decrypter",
+ "simple-httptap-keylog",
+ "simple-httptap-keylog-file",
+ "tempfile",
+]
+
+[[package]]
+name = "simple-httptap-decrypter-quic"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-decoder",
+ "simple-httptap-decrypter",
+ "simple-httptap-decrypter-conformance",
+ "simple-httptap-keylog",
+]
+
+[[package]]
+name = "simple-httptap-decrypter-tls"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-decoder",
+ "simple-httptap-decrypter",
+ "simple-httptap-decrypter-conformance",
+ "simple-httptap-keylog",
+]
+
+[[package]]
+name = "simple-httptap-keylog"
+version = "0.0.3"
+
+[[package]]
+name = "simple-httptap-keylog-conformance"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-keylog",
+ "tempfile",
+]
+
+[[package]]
+name = "simple-httptap-keylog-file"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-keylog",
+ "simple-httptap-keylog-conformance",
+]
+
+[[package]]
 name = "simple-httptap-proxy"
 version = "0.0.3"
 dependencies = [
  "simple-httptap-authority",
+ "simple-httptap-keylog",
  "simple-httptap-sink",
 ]
 
@@ -1202,6 +1270,41 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "url",
+]
+
+[[package]]
+name = "simple-httptap-redirector"
+version = "0.0.3"
+
+[[package]]
+name = "simple-httptap-redirector-conformance"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-redirector",
+]
+
+[[package]]
+name = "simple-httptap-redirector-linux"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-redirector",
+ "simple-httptap-redirector-conformance",
+]
+
+[[package]]
+name = "simple-httptap-redirector-macos"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-redirector",
+ "simple-httptap-redirector-conformance",
+]
+
+[[package]]
+name = "simple-httptap-redirector-windows"
+version = "0.0.3"
+dependencies = [
+ "simple-httptap-redirector",
+ "simple-httptap-redirector-conformance",
 ]
 
 [[package]]

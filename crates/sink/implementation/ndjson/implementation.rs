@@ -9,7 +9,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use serde::Serialize;
 use simple_httptap_decoder::{Decoded, Direction, Field, Kind, Message};
-use simple_httptap_sink::{Event, Sink};
+use simple_httptap_sink::{Event, Sink, Transport};
 
 /// A sink of JSON lines on standard output.
 #[derive(Debug, Default)]
@@ -37,7 +37,7 @@ struct Line<'a> {
 #[serde(tag = "event", rename_all = "snake_case")]
 enum Happening<'a> {
     Listening { address: String },
-    Opened { connection: u64, client: String, target: &'a str, tls: bool, protocol: Option<&'a str> },
+    Opened { connection: u64, client: String, target: &'a str, transport: Carrier, tls: bool, protocol: Option<&'a str> },
     Request(Exchanged<'a>),
     Response(Exchanged<'a>),
     Unparsed { connection: u64, from: Side, bytes: Bytes<'a> },
@@ -50,7 +50,7 @@ enum Happening<'a> {
 #[derive(Serialize)]
 struct Exchanged<'a> {
     connection: u64,
-    stream: Option<u32>,
+    stream: Option<u64>,
     start_line: Option<Bytes<'a>>,
     headers: Vec<(Bytes<'a>, Bytes<'a>)>,
     body: Bytes<'a>,
@@ -84,6 +84,7 @@ impl<'a> Line<'a> {
                 connection: opened.id,
                 client: opened.client.to_string(),
                 target: &opened.target,
+                transport: Carrier::of(opened.transport),
                 tls: opened.tls,
                 protocol: opened.protocol.as_deref(),
             },
@@ -126,6 +127,24 @@ impl<'a> Bytes<'a> {
     /// Returns the bytes as text if they are UTF-8, or else as base64.
     fn of(bytes: &'a [u8]) -> Self {
         std::str::from_utf8(bytes).map_or_else(|_| Self::Binary { base64: STANDARD.encode(bytes) }, Self::Text)
+    }
+}
+
+/// The transport a connection went over, written in lower case.
+#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+enum Carrier {
+    Tcp,
+    Udp,
+}
+
+impl Carrier {
+    /// Returns the name written for a transport.
+    fn of(transport: Transport) -> Self {
+        match transport {
+            Transport::Tcp => Self::Tcp,
+            Transport::Udp => Self::Udp,
+        }
     }
 }
 

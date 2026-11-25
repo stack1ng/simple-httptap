@@ -1,0 +1,20 @@
+[package]
+name = "simple-httptap-redirector-linux"
+version = "0.0.3"
+edition = "2024"
+
+[lib]
+path = "implementation.rs"
+
+[[test]]
+name = "conformance"
+path = "conformance_run.rs"
+
+[dependencies]
+simple-httptap-redirector = { version = "0.0.3", path = "../.." }
+
+[dev-dependencies]
+simple-httptap-redirector-conformance = { path = "../../conformance" }
+
+[lints]
+workspace = true

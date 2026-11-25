@@ -1,0 +1,1 @@
+simple_httptap_redirector_conformance::tests!(simple_httptap_redirector_windows::DivertRedirector);

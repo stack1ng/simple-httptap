@@ -30,6 +30,7 @@ other = 'It does not start with a verb: a noun phrase, or a sentence with its ow
 "Checks that text that is no certificate is refused before the store is touched." = { answer = "third_person_verb", confidence = 0.9353382241535212, model = "perplexity/pplx-decider-v1.2-20261016" }
 "Checks that the proxy listens on a loopback port the operating system picked." = { answer = "third_person_verb", confidence = 0.8865917366944523, model = "perplexity/pplx-decider-v1.2-20261016" }
 "Checks that the root certificate is a PEM certificate." = { answer = "third_person_verb", confidence = 0.8911497502798438, model = "perplexity/pplx-decider-v1.2-20261016" }
+"Checks that the value has a name." = { answer = "third_person_verb", confidence = 0.8743825533677533, model = "perplexity/pplx-decider-v1.2-20261016" }
 "Connects to the target's host and port, through the upstream proxy if there is one." = { answer = "third_person_verb", confidence = 0.90067911827312, model = "perplexity/pplx-decider-v1.2-20261016" }
 "Copies bytes from the reader to the writer until either ends, sending each chunk for decoding as it arrives." = { answer = "third_person_verb", confidence = 0.9158100808466152, model = "perplexity/pplx-decider-v1.2-20261016" }
 "Decodes a whole field block and gives its fields to the message they start or end." = { answer = "third_person_verb", confidence = 0.7717044949471077, model = "perplexity/pplx-decider-v1.2-20261016" }
@@ -451,6 +452,7 @@ other = 'Neither a noun phrase nor a clause, such as "Used for parsing."'
 "The rule that ends a body." = { answer = "noun_phrase", confidence = 0.9309972561139346, model = "perplexity/pplx-decider-v1.2-20261016" }
 "The side of a connection that sent some bytes." = { answer = "noun_phrase", confidence = 0.7621835698095337, model = "perplexity/pplx-decider-v1.2-20261016" }
 "The side that sent some bytes, written in lower case." = { answer = "noun_phrase", confidence = 0.5708589060378436, model = "perplexity/pplx-decider-v1.2-20261016" }
+"The skeleton of a trait, for the real traits, data types and constants to replace." = { answer = "noun_phrase", confidence = 0.853674187238306, model = "perplexity/pplx-decider-v1.2-20261016" }
 "The state all connections of one proxy share: its signer, sink, upstream and TLS settings." = { answer = "noun_phrase", confidence = 0.6303186105064241, model = "perplexity/pplx-decider-v1.2-20261016" }
 "The state of one connection, started anew for each." = { answer = "noun_phrase", confidence = 0.7163902648390164, model = "perplexity/pplx-decider-v1.2-20261016" }
 "The step of reading a chunked body." = { answer = "noun_phrase", confidence = 0.8539452294289419, model = "perplexity/pplx-decider-v1.2-20261016" }
@@ -494,6 +496,7 @@ frame_request = { answer = "first_word", confidence = 0.8361378177994917, model 
 frame_response = { answer = "first_word", confidence = 0.8400578310178974, model = "perplexity/pplx-decider-v1.2-20261016" }
 gives_its_root_in_pem = { answer = "first_word", confidence = 0.9700645514389754, model = "perplexity/pplx-decider-v1.2-20261016" }
 handle = { answer = "first_word", confidence = 0.7950588364375799, model = "perplexity/pplx-decider-v1.2-20261016" }
+has_a_name = { answer = "first_word", confidence = 0.9860928630142378, model = "perplexity/pplx-decider-v1.2-20261016" }
 head_length = { answer = "no_verb", confidence = 0.9798261852379156, model = "perplexity/pplx-decider-v1.2-20261016" }
 host_of = { answer = "no_verb", confidence = 0.570604435892533, model = "perplexity/pplx-decider-v1.2-20261016" }
 is_informational = { answer = "first_word", confidence = 0.9411196911099368, model = "perplexity/pplx-decider-v1.2-20261016" }
@@ -506,6 +509,7 @@ listens_on_loopback = { answer = "first_word", confidence = 0.9797118275475164, 
 local_address = { answer = "no_verb", confidence = 0.9893598169120156, model = "perplexity/pplx-decider-v1.2-20261016" }
 make_authority = { answer = "first_word", confidence = 0.9852105528332068, model = "perplexity/pplx-decider-v1.2-20261016" }
 message = { answer = "no_verb", confidence = 0.6063646238244684, model = "perplexity/pplx-decider-v1.2-20261016" }
+name = { answer = "no_verb", confidence = 0.938830509132994, model = "perplexity/pplx-decider-v1.2-20261016" }
 next_frame = { answer = "no_verb", confidence = 0.5174103860382511, model = "perplexity/pplx-decider-v1.2-20261016" }
 of = { answer = "no_verb", confidence = 0.6840269164162978, model = "perplexity/pplx-decider-v1.2-20261016" }
 open = { answer = "first_word", confidence = 0.9835637400737955, model = "perplexity/pplx-decider-v1.2-20261016" }

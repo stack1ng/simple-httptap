@@ -10,4 +10,4 @@ path = "interface.rs"
 workspace = true
 
 [dependencies]
-simple-httptap-decoder = { path = "../decoder" }
+simple-httptap-decoder = { version = "0.0.3", path = "../decoder" }

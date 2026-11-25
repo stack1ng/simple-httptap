@@ -8,7 +8,7 @@ publish = false
 path = "suite.rs"
 
 [dependencies]
-simple-httptap-decoder = { path = ".." }
+simple-httptap-decoder = { version = "0.0.3", path = ".." }
 
 [lints]
 workspace = true

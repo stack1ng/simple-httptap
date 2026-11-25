@@ -9,7 +9,7 @@ path = "suite.rs"
 
 [dependencies]
 simple-httptap-authority = { version = "0.0.3", path = "../../authority" }
-simple-httptap-proxy = { path = ".." }
+simple-httptap-proxy = { version = "0.0.3", path = ".." }
 tempfile = "3.27.0"
 
 [lints]

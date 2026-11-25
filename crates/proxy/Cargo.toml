@@ -10,5 +10,6 @@ path = "interface.rs"
 workspace = true
 
 [dependencies]
-simple-httptap-authority = { path = "../authority" }
-simple-httptap-sink = { path = "../sink" }
+simple-httptap-keylog = { version = "0.0.3", path = "../keylog" }
+simple-httptap-authority = { version = "0.0.3", path = "../authority" }
+simple-httptap-sink = { version = "0.0.3", path = "../sink" }

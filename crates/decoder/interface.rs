@@ -14,6 +14,18 @@ pub trait ConnectionDecoder: Send + 'static {
     /// Reads the next bytes one side sent and returns everything they completed.
     fn decode(&mut self, direction: Direction, bytes: &[u8]) -> Vec<Decoded>;
 
+    /// Reads the next bytes one side sent on a stream of the transport's own, such as a QUIC stream.
+    ///
+    /// `fin` says the side ended the stream with them. A version whose transport has no streams of its own,
+    /// which is every version before HTTP/3, gives them back unparsed.
+    fn decode_stream(&mut self, direction: Direction, stream: u64, bytes: &[u8], fin: bool) -> Vec<Decoded> {
+        let _ = (stream, fin);
+        if bytes.is_empty() {
+            return Vec::new();
+        }
+        vec![Decoded::Unparsed { direction, bytes: bytes.to_vec() }]
+    }
+
     /// Returns what is left once the connection closed, a message cut short with `complete` false.
     fn finish(&mut self) -> Vec<Decoded>;
 }
@@ -39,7 +51,7 @@ pub enum Decoded {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Message {
     pub kind: Kind,
-    pub stream: Option<u32>,
+    pub stream: Option<u64>,
     pub start_line: Option<Vec<u8>>,
     pub fields: Vec<Field>,
     pub body: Vec<u8>,
